@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Print3D Studio — Sistema de gestión</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+  :root {
+    --purple: #534AB7; --purple-light: #EEEDFE; --purple-dark: #3C3489;
+    --teal: #0F6E56; --teal-light: #E1F5EE;
+    --green: #3B6D11; --green-light: #EAF3DE;
+    --amber: #854F0B; --amber-light: #FAEEDA;
+    --red: #993C1D; --red-light: #FAECE7;
+    --blue: #185FA5; --blue-light: #E6F1FB;
+    --gray-bg: #F5F5F3; --card-bg: #ffffff;
+    --border: #e5e5e2; --border-strong: #ccccc8;
+    --text: #1a1a18; --text-2: #6b6b68; --text-3: #9c9c99;
+    --radius: 8px; --radius-lg: 12px;
+    --wpp: #25D366;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-bg); color: var(--text); font-size: 14px; }
+  
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; min-width: 220px; background: var(--card-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-logo { padding: 1.25rem 1rem 1rem; border-bottom: 1px solid var(--border); }
+  .sidebar-logo-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .sidebar-logo-sub { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+  .nav-section { font-size: 10px; color: var(--text-3); padding: .75rem 1rem .3rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 1rem; cursor: pointer; font-size: 13px; color: var(--text-2); border-left: 2px solid transparent; transition: all .15s; }
+  .nav-item:hover { background: var(--gray-bg); color: var(--text); }
+  .nav-item.active { background: var(--purple-light); color: var(--purple); border-left: 2px solid var(--purple); font-weight: 500; }
+  .nav-item i { font-size: 16px; }
+  .content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+  .page { display: none; } .page.active { display: block; }
+
+  /* TOPBAR */
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+  .page-title { font-size: 20px; font-weight: 600; color: var(--text); }
+
+  /* CARDS */
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: .875rem; display: flex; align-items: center; gap: 6px; }
+
+  /* METRICS */
+  .metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 1.25rem; }
+  .metric { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .875rem 1rem; }
+  .metric-label { font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 600; color: var(--text); }
+  .metric-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+
+  /* ALERTS */
+  .alerts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.25rem; }
+  .alert { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: var(--radius); font-size: 12px; }
+  .alert-warn { background: var(--amber-light); color: var(--amber); border: 1px solid #EF9F27; }
+  .alert-danger { background: var(--red-light); color: var(--red); border: 1px solid #F0997B; }
+  .alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #85B7EB; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  th { text-align: left; font-size: 11px; color: var(--text-2); font-weight: 600; padding: 0 8px 8px 0; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .03em; }
+  td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gray-bg); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .b-ok { background: var(--green-light); color: var(--green); }
+  .b-warn { background: var(--amber-light); color: var(--amber); }
+  .b-low { background: var(--red-light); color: var(--red); }
+  .b-info { background: var(--blue-light); color: var(--blue); }
+  .b-purple { background: var(--purple-light); color: var(--purple-dark); }
+  .b-teal { background: var(--teal-light); color: var(--teal); }
+  .type-imp { background: var(--purple-light); color: var(--purple-dark); display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .type-dis { background: var(--teal-light); color: var(--teal); display: inline-flex; align-items: center; gap: 3px; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--border-strong); background: var(--card-bg); color: var(--text); cursor: pointer; font-family: inherit; transition: all .15s; font-weight: 500; }
+  .btn:hover { background: var(--gray-bg); }
+  .btn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .btn-primary:hover { background: var(--purple-dark); }
+  .btn-wpp { background: var(--wpp); color: #fff; border-color: var(--wpp); }
+  .btn-wpp:hover { background: #1da851; }
+  .btn-sm { font-size: 12px; padding: 5px 10px; }
+  .btn-icon { padding: 6px 9px; }
+
+  /* TABS */
+  .tab-row { display: flex; gap: 3px; margin-bottom: 1rem; background: #eeeeed; padding: 3px; border-radius: var(--radius); width: fit-content; }
+  .tab { padding: 5px 14px; font-size: 12px; border-radius: 6px; cursor: pointer; color: var(--text-2); font-weight: 500; border: none; background: transparent; font-family: inherit; transition: all .15s; }
+  .tab.active { background: var(--card-bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+  input, select, textarea { font-size: 13px; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--card-bg); color: var(--text); width: 100%; font-family: inherit; transition: border-color .15s; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--purple); }
+  textarea { resize: vertical; min-height: 60px; }
+
+  /* TWO COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  /* PRESUP */
+  .presup-section { display: none; } .presup-section.active { display: block; }
+  .total-row { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; margin-top: 6px; border-top: 1px solid var(--border); }
+  .ref-box { background: var(--gray-bg); border-radius: var(--radius); padding: .75rem; margin-bottom: 8px; }
+  .ref-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+  .ref-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .ref-row:last-child { border-bottom: none; }
+  .tip-box { background: var(--teal-light); border-radius: var(--radius); padding: 10px 12px; font-size: 12px; color: var(--teal); display: flex; gap: 7px; margin-top: 8px; line-height: 1.5; }
+
+  /* STOCK CARDS */
+  .spool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px,1fr)); gap: 12px; }
+  .spool-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .875rem; cursor: pointer; transition: border-color .15s; }
+  .spool-card:hover { border-color: var(--purple); }
+  .spool-card.low { border-left: 3px solid #D85A30; }
+  .spool-visual { display: flex; justify-content: center; margin-bottom: 10px; }
+  .spool-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .spool-sub { font-size: 11px; color: var(--text-2); margin-bottom: 8px; }
+  .prog-bar { height: 5px; background: var(--gray-bg); border-radius: 3px; overflow: hidden; margin: 6px 0 3px; }
+  .prog-fill { height: 100%; border-radius: 3px; }
+  .spool-kg { font-size: 11px; color: var(--text-2); display: flex; justify-content: space-between; }
+  .spool-price { font-size: 12px; font-weight: 600; color: var(--text); margin-top: 6px; }
+
+  /* MACHINES */
+  .machine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .mcard { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+  .mcard-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .minfo { font-size: 11px; color: var(--text-2); margin-top: 10px; line-height: 1.7; }
+
+  /* TIMELINE */
+  .tl { list-style: none; }
+  .tl li { display: flex; gap: 10px; padding-bottom: 12px; position: relative; }
+  .tl li::before { content: ''; position: absolute; left: 14px; top: 26px; bottom: 0; width: 1px; background: var(--border); }
+  .tl li:last-child::before { display: none; }
+  .tl-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+  .tl-dot.done { background: var(--green-light); color: var(--green); }
+  .tl-dot.pend { background: var(--amber-light); color: var(--amber); }
+  .tl-dot.run { background: var(--purple-light); color: var(--purple); }
+  .tl-t { font-size: 13px; font-weight: 500; color: var(--text); padding-top: 3px; }
+  .tl-s { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+  /* COBROS */
+  .cobro-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cobro-row:last-child { border-bottom: none; }
+  .cobro-info { flex: 1; }
+  .cobro-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .cobro-det { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+  .cobro-amounts { text-align: right; }
+  .cobro-total { font-size: 14px; font-weight: 600; color: var(--text); }
+  .cobro-saldo { font-size: 11px; color: var(--red); margin-top: 2px; }
+  .cobro-ok { font-size: 11px; color: var(--green); margin-top: 2px; }
+
+  /* WPP MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card-bg); border-radius: var(--radius-lg); padding: 1.5rem; width: 420px; max-width: 95vw; }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .wpp-preview { background: #e5ddd5; border-radius: var(--radius); padding: 12px; margin-bottom: 1rem; }
+  .wpp-bubble { background: #fff; border-radius: 0 10px 10px 10px; padding: 10px 12px; font-size: 13px; color: #1a1a1a; line-height: 1.6; max-width: 90%; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* PRESUP SHARE */
+  .presup-doc { background: var(--gray-bg); border-radius: var(--radius-lg); padding: 1rem; }
+  .presup-doc-inner { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; font-size: 13px; }
+  .presup-header-doc { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; padding-bottom: .75rem; border-bottom: 1px solid var(--border); }
+  .presup-logo { font-size: 15px; font-weight: 700; color: var(--purple); }
+  .share-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* RESUMEN */
+  .chart-bar-wrap { margin-top: .5rem; }
+  .chart-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .chart-label { font-size: 12px; color: var(--text-2); width: 120px; flex-shrink: 0; }
+  .chart-bar-bg { flex: 1; height: 10px; background: var(--gray-bg); border-radius: 5px; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 5px; }
+  .chart-val { font-size: 12px; font-weight: 600; color: var(--text); width: 80px; text-align: right; flex-shrink: 0; }
+
+  /* RESPONSIVE sidebar toggle */
+  @media (max-width: 700px) {
+    .sidebar { width: 56px; min-width: 56px; }
+    .sidebar-logo-title, .sidebar-logo-sub, .nav-section, .nav-item span { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .two-col, .machine-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- WPP MODAL -->
+<div class="modal-overlay" id="wpp-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-brand-whatsapp" style="color:var(--wpp);font-size:20px"></i> Enviar por WhatsApp</div>
+    <div class="wpp-preview">
+      <div class="wpp-bubble" id="wpp-msg-preview">Hola! Tu pedido está listo.</div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Número del cliente (con código de país)</label>
+      <input type="tel" id="wpp-number" placeholder="549 266 4123456" value="549"/>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Mensaje (podés editarlo)</label>
+      <textarea id="wpp-msg-edit" rows="5"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeWpp()">Cancelar</button>
+      <button class="btn btn-wpp" onclick="sendWpp()"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">Print3D Studio</div>
+    <div class="sidebar-logo-sub">Panel de gestión</div>
+  </div>
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span>Inicio</span></div>
+  <div class="nav-section">Negocio</div>
+  <div class="nav-item" onclick="nav('pedidos',this)"><i class="ti ti-clipboard-list"></i><span>Pedidos</span></div>
+  <div class="nav-item" onclick="nav('presupuestos',this)"><i class="ti ti-file-invoice"></i><span>Presupuestos</span></div>
+  <div class="nav-item" onclick="nav('cobros',this)"><i class="ti ti-cash"></i><span>Cobros</span></div>
+  <div class="nav-section">Operaciones</div>
+  <div class="nav-item" onclick="nav('stock',this)"><i class="ti ti-package"></i><span>Stock</span></div>
+  <div class="nav-item" onclick="nav('trabajos',this)"><i class="ti ti-checklist"></i><span>Trabajos</span></div>
+  <div class="nav-item" onclick="nav('maquinas',this)"><i class="ti ti-tool"></i><span>Máquinas</span></div>
+  <div class="nav-section">Más</div>
+  <div class="nav-item" onclick="nav('clientes',this)"><i class="ti ti-users"></i><span>Clientes</span></div>
+  <div class="nav-item" onclick="nav('resumen',this)"><i class="ti ti-chart-bar"></i><span>Resumen</span></div>
+</nav>
+
+<main class="content">
+
+<!-- ===== DASHBOARD ===== -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div class="page-title">Buen día 👋</div>
+    <div style="font-size:13px;color:var(--text-2)" id="fecha-hoy"></div>
+  </div>
+
+  <div class="alerts">
+    <div class="alert alert-danger"><i class="ti ti-alert-circle"></i> <strong>Stock bajo:</strong> PLA Negro (0.3 kg) y PETG Gris (0.6 kg) — hay que reponer</div>
+    <div class="alert alert-warn"><i class="ti ti-clock"></i> <strong>Entrega hoy:</strong> Pedido #033 — Imprenta Sur — STL engranaje v2</div>
+    <div class="alert alert-warn"><i class="ti ti-clock"></i> <strong>Sin cobrar:</strong> Pedido #031 — 3D Rosario — $24.000 pendiente</div>
+    <div class="alert alert-info"><i class="ti ti-check"></i> <strong>Listo para entregar:</strong> Pedido #032 — García, R. — Carcasa electrónica</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Pedidos activos</div><div class="metric-value">9</div><div class="metric-sub">5 impresión · 4 diseño</div></div>
+    <div class="metric"><div class="metric-label">Facturado este mes</div><div class="metric-value">$187.400</div><div class="metric-sub">Imp. $121k · Dis. $66k</div></div>
+    <div class="metric"><div class="metric-label">Máquinas activas</div><div class="metric-value">3/5</div><div class="metric-sub">1 en mantenimiento</div></div>
+    <div class="metric"><div class="metric-label">Saldo a cobrar</div><div class="metric-value">$48.500</div><div class="metric-sub">3 pedidos pendientes</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-clipboard-list" style="color:var(--purple)"></i> Pedidos recientes</div>
+      <table>
+        <colgroup><col style="width:35%"><col style="width:30%"><col style="width:35%"></colgroup>
+        <tr><th>Cliente</th><th>Tipo</th><th>Estado</th></tr>
+        <tr><td>Martínez, L.</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td><span class="badge b-warn">En proceso</span></td></tr>
+        <tr><td>Imprenta Sur</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td><span class="badge b-teal">Listo</span></td></tr>
+        <tr><td>García, R.</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td><span class="badge b-ok">Listo</span></td></tr>
+        <tr><td>3D Rosario</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td><span class="badge b-purple">Revisión</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-sun" style="color:var(--amber)"></i> Trabajos de hoy</div>
+      <ul class="tl">
+        <li><div class="tl-dot done"><i class="ti ti-check"></i></div><div><div class="tl-t">STL engranaje v2 — enviado</div><div class="tl-s"><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span> · Imprenta Sur</div></div></li>
+        <li><div class="tl-dot run"><i class="ti ti-player-play"></i></div><div><div class="tl-t">Carcasa electrónica — 62% (4hs)</div><div class="tl-s"><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span> · García, R. · Bambu X1C</div></div></li>
+        <li><div class="tl-dot run"><i class="ti ti-player-play"></i></div><div><div class="tl-t">Miniaturas x12 — 85% (~1hs)</div><div class="tl-s"><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span> · Martínez, L. · Elegoo Mars</div></div></li>
+        <li><div class="tl-dot pend"><i class="ti ti-clock"></i></div><div><div class="tl-t">Pieza industrial — en revisión</div><div class="tl-s"><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span> · 3D Rosario</div></div></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PEDIDOS ===== -->
+<div class="page" id="page-pedidos">
+  <div class="page-header">
+    <div class="page-title">Pedidos</div>
+    <button class="btn btn-primary"><i class="ti ti-plus"></i> Nuevo pedido</button>
+  </div>
+  <div class="tab-row">
+    <button class="tab active" onclick="filterTable('tabla-pedidos','todos',this)">Todos (9)</button>
+    <button class="tab" onclick="filterTable('tabla-pedidos','imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión (5)</button>
+    <button class="tab" onclick="filterTable('tabla-pedidos','dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño (4)</button>
+  </div>
+  <div class="card">
+    <table id="tabla-pedidos">
+      <colgroup><col style="width:7%"><col style="width:18%"><col style="width:20%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:17%"></colgroup>
+      <tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Tipo</th><th>Total</th><th>Estado</th><th>Acción</th></tr>
+      <tr data-tipo="imp"><td>#034</td><td>Martínez, L.</td><td>Miniaturas x12</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$8.400</td><td><span class="badge b-warn">En proceso</span></td><td><button class="btn btn-sm" onclick="openWpp('Martínez','549','#034 — Miniaturas x12','$8.400','En proceso')"><i class="ti ti-brand-whatsapp" style="color:var(--wpp)"></i> WPP</button></td></tr>
+      <tr data-tipo="dis"><td>#033</td><td>Imprenta Sur</td><td>STL engranaje v2</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$18.000</td><td><span class="badge b-teal">Listo</span></td><td><button class="btn btn-sm btn-wpp" onclick="openWpp('Imprenta Sur','549','#033 — STL engranaje v2','$18.000','Listo para retirar / enviar')"><i class="ti ti-brand-whatsapp"></i> Avisar</button></td></tr>
+      <tr data-tipo="imp"><td>#032</td><td>García, R.</td><td>Carcasa electrónica</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$22.000</td><td><span class="badge b-ok">Listo</span></td><td><button class="btn btn-sm btn-wpp" onclick="openWpp('Roberto García','549','#032 — Carcasa electrónica','$22.000','Listo para retirar')"><i class="ti ti-brand-whatsapp"></i> Avisar</button></td></tr>
+      <tr data-tipo="dis"><td>#031</td><td>3D Rosario</td><td>Pieza industrial</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$24.000</td><td><span class="badge b-purple">Revisión</span></td><td><button class="btn btn-sm" onclick="openWpp('3D Rosario','549','#031 — Pieza industrial','$24.000','En revisión')"><i class="ti ti-brand-whatsapp" style="color:var(--wpp)"></i> WPP</button></td></tr>
+      <tr data-tipo="imp"><td>#030</td><td>Ferretería Norte</td><td>Soporte herram. x3</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$12.600</td><td><span class="badge b-ok">Entregado</span></td><td>—</td></tr>
+      <tr data-tipo="dis"><td>#029</td><td>Maker Córdoba</td><td>Modelo figura anim.</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$32.000</td><td><span class="badge b-ok">Entregado</span></td><td>—</td></tr>
+      <tr data-tipo="imp"><td>#028</td><td>Pérez, A.</td><td>Figura decorativa</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$5.500</td><td><span class="badge b-ok">Entregado</span></td><td>—</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== PRESUPUESTOS ===== -->
+<div class="page" id="page-presupuestos">
+  <div class="page-header"><div class="page-title">Presupuestos</div></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="switchPresup('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión 3D</button>
+    <button class="tab" onclick="switchPresup('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño 3D</button>
+  </div>
+
+  <!-- IMPRESION -->
+  <div class="presup-section active" id="presup-imp">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-printer" style="color:var(--purple)"></i> Datos — impresión</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Cliente</label><input id="pi-cliente" placeholder="Nombre o empresa"/></div>
+          <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="pi-fecha"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Material</label><select id="pi-mat"><option>PLA</option><option>PETG</option><option>ABS</option><option>TPU</option><option>Resina</option></select></div>
+          <div class="form-group"><label class="form-label">Peso estimado (g)</label><input type="number" id="peso" placeholder="0" oninput="calcImp()"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Tiempo impresión (hs)</label><input type="number" id="ths" placeholder="0" oninput="calcImp()"/></div>
+          <div class="form-group"><label class="form-label">Cantidad de piezas</label><input type="number" id="cant" placeholder="1" oninput="calcImp()"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Costo material ($/g)</label><input type="number" id="cmat" value="120" oninput="calcImp()"/></div>
+          <div class="form-group"><label class="form-label">Costo máquina ($/h)</label><input type="number" id="cmaq" value="800" oninput="calcImp()"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Mano de obra ($)</label><input type="number" id="mob" value="5000" oninput="calcImp()"/></div>
+          <div class="form-group"><label class="form-label">Margen (%)</label><input type="number" id="margen" value="30" oninput="calcImp()"/></div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción</label><textarea id="pi-desc" placeholder="Detalles del trabajo..."></textarea></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-calculator" style="color:var(--purple)"></i> Desglose de costos</div>
+          <table>
+            <tr><th>Concepto</th><th style="text-align:right">Subtotal</th></tr>
+            <tr><td>Material</td><td style="text-align:right" id="r-mat">$0</td></tr>
+            <tr><td>Tiempo de máquina</td><td style="text-align:right" id="r-maq">$0</td></tr>
+            <tr><td>Mano de obra</td><td style="text-align:right" id="r-mob">$0</td></tr>
+            <tr><td>Subtotal</td><td style="text-align:right" id="r-sub">$0</td></tr>
+            <tr><td id="r-mlabel">Margen (30%)</td><td style="text-align:right" id="r-mval">$0</td></tr>
+          </table>
+          <div class="total-row">
+            <span style="font-size:14px;font-weight:600">Total estimado</span>
+            <span style="font-size:24px;font-weight:700;color:var(--purple)" id="r-total">$0</span>
+          </div>
+        </div>
+        <div class="card" id="presup-imp-doc" style="display:none">
+          <div class="card-title"><i class="ti ti-file-text" style="color:var(--purple)"></i> Presupuesto para compartir</div>
+          <div class="presup-doc">
+            <div class="presup-doc-inner">
+              <div class="presup-header-doc">
+                <div><div class="presup-logo">Print3D Studio</div><div style="font-size:11px;color:var(--text-2);margin-top:2px">Sistema de gestión</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:600;color:var(--text)">Presupuesto</div><div style="font-size:11px;color:var(--text-2)" id="doc-num">#P-019</div><div style="font-size:11px;color:var(--text-2)" id="doc-fecha"></div></div>
+              </div>
+              <table style="margin-bottom:10px">
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Cliente</td><td style="font-weight:500;font-size:12px;text-align:right;border:none" id="doc-cliente">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Trabajo</td><td style="font-weight:500;font-size:12px;text-align:right;border:none" id="doc-trabajo">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Material</td><td style="font-weight:500;font-size:12px;text-align:right;border:none" id="doc-mat">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Válido hasta</td><td style="font-weight:500;font-size:12px;text-align:right;border:none" id="doc-validez">—</td></tr>
+              </table>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+                <span style="font-weight:600">Total</span>
+                <span style="font-size:18px;font-weight:700;color:var(--purple)" id="doc-total">$0</span>
+              </div>
+            </div>
+          </div>
+          <div class="share-actions">
+            <button class="btn btn-wpp" onclick="compartirPresupWpp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+            <button class="btn" onclick="copiarPresup()"><i class="ti ti-copy"></i> Copiar texto</button>
+            <button class="btn" onclick="window.print()"><i class="ti ti-printer"></i> Imprimir</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:0">
+          <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="generarPresupImp()"><i class="ti ti-file-check"></i> Generar presupuesto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISEÑO -->
+  <div class="presup-section" id="presup-dis">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-vector" style="color:var(--teal)"></i> Datos — diseño 3D</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Cliente / empresa</label><input id="pd-cliente" placeholder="Nombre o empresa"/></div>
+          <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="pd-fecha"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Tipo de archivo</label><select><option>Archivo STL</option><option>Archivo STEP</option><option>STL + STEP</option><option>OBJ</option><option>Render 3D</option></select></div>
+          <div class="form-group"><label class="form-label">Destino</label><select><option>Para imprimir aquí</option><option>Para otro local</option><option>Uso propio</option></select></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Horas estimadas</label><input type="number" id="dhs" placeholder="0" oninput="calcDis()"/></div>
+          <div class="form-group"><label class="form-label">Precio por hora ($)</label><input type="number" id="dph" value="2500" oninput="calcDis()"/></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Complejidad</label><select id="dcomp" onchange="calcDis()"><option value="1">Baja — sin recargo</option><option value="1.2">Media — +20%</option><option value="1.5">Alta — +50%</option></select></div>
+          <div class="form-group"><label class="form-label">Revisiones incluidas</label><select><option>1 revisión</option><option>2 revisiones</option><option>Ilimitadas</option></select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción del diseño</label><textarea id="pd-desc" placeholder="Qué modelar, medidas, referencias..."></textarea></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--teal)"></i> Referencia de precios · mercado AR</div>
+          <div class="ref-box"><div class="ref-title"><i class="ti ti-cube" style="font-size:13px"></i> Piezas simples / funcionales</div>
+            <div class="ref-row"><span style="color:var(--text-2)">Bisagra, soporte simple</span><span style="font-weight:500">$8.000–$18.000</span></div>
+            <div class="ref-row"><span style="color:var(--text-2)">Adaptador / accesorio</span><span style="font-weight:500">$12.000–$25.000</span></div>
+          </div>
+          <div class="ref-box"><div class="ref-title"><i class="ti ti-settings" style="font-size:13px"></i> Piezas medias / mecánicas</div>
+            <div class="ref-row"><span style="color:var(--text-2)">Engranaje o mecanismo</span><span style="font-weight:500">$20.000–$45.000</span></div>
+            <div class="ref-row"><span style="color:var(--text-2)">Carcasa con detalles</span><span style="font-weight:500">$25.000–$55.000</span></div>
+            <div class="ref-row"><span style="color:var(--text-2)">Figura / decorativo</span><span style="font-weight:500">$15.000–$35.000</span></div>
+          </div>
+          <div class="ref-box"><div class="ref-title"><i class="ti ti-crown" style="font-size:13px"></i> Trabajos complejos</div>
+            <div class="ref-row"><span style="color:var(--text-2)">Ensamble multi-pieza</span><span style="font-weight:500">$50.000–$120.000</span></div>
+            <div class="ref-row"><span style="color:var(--text-2)">Industrial / ingeniería</span><span style="font-weight:500">$60.000–$150.000+</span></div>
+          </div>
+          <div class="tip-box"><i class="ti ti-info-circle" style="flex-shrink:0"></i> Precio hora sugerido: $2.000–$3.500/h. Para ventas a otros locales, descuento 15–20%.</div>
+          <div class="total-row" style="margin-top:12px">
+            <span style="font-size:14px;font-weight:600">Tu cotización</span>
+            <span style="font-size:24px;font-weight:700;color:var(--teal)" id="d-total">$0</span>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-wpp" style="flex:1;justify-content:center" onclick="compartirDisWpp()"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COBROS ===== -->
+<div class="page" id="page-cobros">
+  <div class="page-header"><div class="page-title">Cobros</div></div>
+  <div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value">$138.900</div><div class="metric-sub">74% del total facturado</div></div>
+    <div class="metric"><div class="metric-label">Pendiente de cobro</div><div class="metric-value" style="color:var(--red)">$48.500</div><div class="metric-sub">3 pedidos</div></div>
+    <div class="metric"><div class="metric-label">Con seña recibida</div><div class="metric-value">$22.000</div><div class="metric-sub">1 pedido en proceso</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-clock" style="color:var(--amber)"></i> Pendientes de cobro</div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#031 — 3D Rosario · Pieza industrial</div><div class="cobro-det"><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span> · Entrega: 17 jun · Sin seña</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$24.000</div><div class="cobro-saldo">Saldo total pendiente</div></div>
+      <div style="margin-left:10px"><button class="btn btn-sm btn-wpp" onclick="openWpp('3D Rosario','549','#031 — Pieza industrial','$24.000 pendiente','recordatorio de pago')"><i class="ti ti-brand-whatsapp"></i></button></div>
+    </div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#032 — García, R. · Carcasa electrónica</div><div class="cobro-det"><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span> · Listo · Seña $10.000 recibida</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$22.000</div><div class="cobro-saldo">Saldo: $12.000</div></div>
+      <div style="margin-left:10px"><button class="btn btn-sm btn-wpp" onclick="openWpp('Roberto García','549','#032 — Carcasa electrónica','Saldo $12.000','tu trabajo está listo, podés pasar a retirar y abonar el saldo')"><i class="ti ti-brand-whatsapp"></i></button></div>
+    </div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#034 — Martínez, L. · Miniaturas x12</div><div class="cobro-det"><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span> · En proceso · Sin seña</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$8.400</div><div class="cobro-saldo">Saldo total pendiente</div></div>
+      <div style="margin-left:10px"><button class="btn btn-sm" onclick="openWpp('Martínez','549','#034 — Miniaturas x12','$8.400','recordatorio de seña')"><i class="ti ti-brand-whatsapp" style="color:var(--wpp)"></i></button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-check" style="color:var(--green)"></i> Cobrados este mes</div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#030 — Ferretería Norte · Soporte herramientas x3</div><div class="cobro-det">Transferencia · 13 jun</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$12.600</div><div class="cobro-ok">Cobrado completo</div></div>
+    </div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#029 — Maker Córdoba · Figura animación</div><div class="cobro-det">MercadoPago · 10 jun</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$32.000</div><div class="cobro-ok">Cobrado completo</div></div>
+    </div>
+    <div class="cobro-row">
+      <div class="cobro-info"><div class="cobro-name">#028 — Pérez, A. · Figura decorativa</div><div class="cobro-det">Efectivo · 10 jun</div></div>
+      <div class="cobro-amounts"><div class="cobro-total">$5.500</div><div class="cobro-ok">Cobrado completo</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STOCK ===== -->
+<div class="page" id="page-stock">
+  <div class="page-header">
+    <div class="page-title">Stock de materiales</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-icon" id="btn-cards" onclick="setView('cards')" title="Tarjetas"><i class="ti ti-layout-grid"></i></button>
+      <button class="btn btn-icon" id="btn-list" onclick="setView('list')" title="Lista"><i class="ti ti-list"></i></button>
+      <button class="btn btn-primary"><i class="ti ti-plus"></i> Agregar</button>
+    </div>
+  </div>
+  <div id="view-cards">
+    <div class="spool-grid" id="spool-grid"></div>
+  </div>
+  <div id="view-list" style="display:none">
+    <div class="card">
+      <table>
+        <colgroup><col style="width:5%"><col style="width:13%"><col style="width:12%"><col style="width:10%"><col style="width:9%"><col style="width:12%"><col style="width:12%"><col style="width:27%"></colgroup>
+        <tr><th></th><th>Material</th><th>Color</th><th>Stock</th><th>Mín.</th><th>Estado</th><th>Precio/kg</th><th>Proveedor</th></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#534AB7"/><circle cx="18" cy="18" r="2.5" fill="#EEEDFE"/></svg></td><td>PLA</td><td>Blanco</td><td>2.4 kg</td><td>1.0</td><td><span class="badge b-ok">OK</span></td><td>$4.200</td><td>3DStore BA</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#444441" stroke="#2C2C2A" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#2C2C2A"/><circle cx="18" cy="18" r="2.5" fill="#444441"/></svg></td><td>PLA</td><td>Negro</td><td>0.3 kg</td><td>1.0</td><td><span class="badge b-low">Stock bajo</span></td><td>$4.200</td><td>3DStore BA</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#B4B2A9" stroke="#888780" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#5F5E5A"/><circle cx="18" cy="18" r="2.5" fill="#B4B2A9"/></svg></td><td>PETG</td><td>Gris</td><td>0.6 kg</td><td>1.0</td><td><span class="badge b-low">Stock bajo</span></td><td>$5.100</td><td>FilamentAR</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#E6F1FB" stroke="#85B7EB" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#378ADD"/><circle cx="18" cy="18" r="2.5" fill="#E6F1FB"/></svg></td><td>PETG</td><td>Transparente</td><td>1.8 kg</td><td>0.5</td><td><span class="badge b-ok">OK</span></td><td>$5.100</td><td>FilamentAR</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#F5C4B3" stroke="#D85A30" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#993C1D"/><circle cx="18" cy="18" r="2.5" fill="#F5C4B3"/></svg></td><td>ABS</td><td>Naranja</td><td>1.2 kg</td><td>0.5</td><td><span class="badge b-ok">OK</span></td><td>$4.800</td><td>3DStore BA</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#9FE1CB" stroke="#1D9E75" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#0F6E56"/><circle cx="18" cy="18" r="2.5" fill="#9FE1CB"/></svg></td><td>TPU</td><td>Verde</td><td>0.8 kg</td><td>0.3</td><td><span class="badge b-ok">OK</span></td><td>$7.600</td><td>Poly3D</td></tr>
+        <tr><td><svg width="20" height="20" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#D3D1C7" stroke="#888780" stroke-width="2"/><circle cx="18" cy="18" r="6" fill="#444441"/><circle cx="18" cy="18" r="2.5" fill="#D3D1C7"/></svg></td><td>Resina</td><td>Gris</td><td>1.5 L</td><td>0.5</td><td><span class="badge b-ok">OK</span></td><td>$6.900/L</td><td>ResinsAR</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TRABAJOS ===== -->
+<div class="page" id="page-trabajos">
+  <div class="page-header">
+    <div class="page-title">Trabajos</div>
+    <button class="btn btn-primary"><i class="ti ti-plus"></i> Agregar</button>
+  </div>
+  <div class="metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+    <div class="metric"><div class="metric-label">Pendientes</div><div class="metric-value">3</div></div>
+    <div class="metric"><div class="metric-label">En proceso</div><div class="metric-value">4</div></div>
+    <div class="metric"><div class="metric-label">Entregados (mes)</div><div class="metric-value">11</div></div>
+    <div class="metric"><div class="metric-label">Diseños vendidos</div><div class="metric-value">6</div></div>
+  </div>
+  <div class="tab-row">
+    <button class="tab active" onclick="filterTable('tabla-trabajos','todos',this)">Todos</button>
+    <button class="tab" onclick="filterTable('tabla-trabajos','imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión</button>
+    <button class="tab" onclick="filterTable('tabla-trabajos','dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño</button>
+  </div>
+  <div class="card">
+    <table id="tabla-trabajos">
+      <colgroup><col style="width:22%"><col style="width:16%"><col style="width:13%"><col style="width:14%"><col style="width:13%"><col style="width:22%"></colgroup>
+      <tr><th>Trabajo</th><th>Cliente</th><th>Tipo</th><th>Asignado</th><th>Estado</th><th>Acción</th></tr>
+      <tr data-tipo="imp"><td>Carcasa electrónica</td><td>García, R.</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>Bambu X1C</td><td><span class="badge b-ok">Listo</span></td><td><button class="btn btn-sm btn-wpp" onclick="openWpp('Roberto García','549','#032 — Carcasa electrónica','$22.000','tu trabajo está listo para retirar')"><i class="ti ti-brand-whatsapp"></i> Avisar cliente</button></td></tr>
+      <tr data-tipo="imp"><td>Miniaturas x12</td><td>Martínez, L.</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>Elegoo Mars</td><td><span class="badge b-info">85%</span></td><td>—</td></tr>
+      <tr data-tipo="dis"><td>STL engranaje v2</td><td>Imprenta Sur</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>Diseñador</td><td><span class="badge b-teal">Enviado</span></td><td>—</td></tr>
+      <tr data-tipo="dis"><td>Pieza industrial</td><td>3D Rosario</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>Diseñador</td><td><span class="badge b-purple">Revisión</span></td><td><button class="btn btn-sm" onclick="openWpp('3D Rosario','549','pieza industrial','','revisión pendiente de aprobación')"><i class="ti ti-brand-whatsapp" style="color:var(--wpp)"></i> WPP</button></td></tr>
+      <tr data-tipo="imp"><td>Lote piezas x6</td><td>Taller Sur</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>—</td><td><span class="badge b-warn">Pendiente</span></td><td>—</td></tr>
+      <tr data-tipo="dis"><td>Figura animación</td><td>Maker Córdoba</td><td><span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>Diseñador</td><td><span class="badge b-ok">Entregado</span></td><td>—</td></tr>
+      <tr data-tipo="imp"><td>Soporte herram. x3</td><td>Ferretería Norte</td><td><span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>Ender 3 #2</td><td><span class="badge b-ok">Entregado</span></td><td>—</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== MÁQUINAS ===== -->
+<div class="page" id="page-maquinas">
+  <div class="page-header"><div class="page-title">Máquinas</div><button class="btn btn-primary"><i class="ti ti-plus"></i> Agregar</button></div>
+  <div class="machine-grid">
+    <div class="mcard"><div class="mcard-name">Bambu Lab X1 Carbon</div><span class="badge b-ok" style="margin-bottom:8px;display:inline-flex">Trabajo listo</span><div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--green)"></div></div><div style="font-size:11px;color:var(--text-2)">100% — listo para retirar</div><div class="minfo">Trabajo: Carcasa electrónica (García, R.)<br>Material: ABS Negro · 180g<br>Último mantenimiento: 02 jun</div></div>
+    <div class="mcard"><div class="mcard-name">Ender 3 Pro #1</div><span class="badge b-info" style="margin-bottom:8px;display:inline-flex">Disponible</span><div class="prog-bar"><div class="prog-fill" style="width:0%;background:var(--green)"></div></div><div style="font-size:11px;color:var(--text-2)">Sin trabajo asignado</div><div class="minfo">Último trabajo: Soporte herramientas<br>Último mantenimiento: 28 may</div></div>
+    <div class="mcard"><div class="mcard-name">Ender 3 Pro #2</div><span class="badge b-warn" style="margin-bottom:8px;display:inline-flex">Mantenimiento</span><div class="prog-bar"><div class="prog-fill" style="width:100%;background:#BA7517"></div></div><div style="font-size:11px;color:var(--text-2)">Fuera de servicio — nivelación cama</div><div class="minfo">Problema: nivelación de cama<br>Último mantenimiento: 15 may</div></div>
+    <div class="mcard"><div class="mcard-name">Elegoo Mars 3 (resina)</div><span class="badge b-purple" style="margin-bottom:8px;display:inline-flex">Imprimiendo 85%</span><div class="prog-bar"><div class="prog-fill" style="width:85%;background:var(--purple)"></div></div><div style="font-size:11px;color:var(--text-2)">~1hs restante</div><div class="minfo">Trabajo: Miniaturas x12 (Martínez, L.)<br>Material: Resina gris · 95g<br>Último mantenimiento: 05 jun</div></div>
+  </div>
+</div>
+
+<!-- ===== CLIENTES ===== -->
+<div class="page" id="page-clientes">
+  <div class="page-header"><div class="page-title">Clientes</div><button class="btn btn-primary"><i class="ti ti-plus"></i> Agregar</button></div>
+  <div class="card">
+    <table>
+      <colgroup><col style="width:20%"><col style="width:22%"><col style="width:10%"><col style="width:13%"><col style="width:14%"><col style="width:21%"></colgroup>
+      <tr><th>Cliente</th><th>Contacto</th><th>Pedidos</th><th>Tipo</th><th>Facturado</th><th>Último pedido</th></tr>
+      <tr><td>Ferretería Norte</td><td>ferrerianorte@mail.com</td><td>8</td><td><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$98.400</td><td>13 jun 2025</td></tr>
+      <tr><td>Imprenta Sur</td><td>+549 11 4123-7890</td><td>5</td><td><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$112.000</td><td>13 jun 2025</td></tr>
+      <tr><td>3D Rosario</td><td>ventas@3drosario.com</td><td>3</td><td><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$78.000</td><td>11 jun 2025</td></tr>
+      <tr><td>García, Roberto</td><td>+549 266 412-3456</td><td>5</td><td><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$61.000</td><td>11 jun 2025</td></tr>
+      <tr><td>Maker Córdoba</td><td>info@makercba.com</td><td>4</td><td><span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span></td><td>$96.000</td><td>10 jun 2025</td></tr>
+      <tr><td>Martínez, Luis</td><td>lmartinez@mail.com</td><td>12</td><td><span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span></td><td>$74.200</td><td>11 jun 2025</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== RESUMEN ===== -->
+<div class="page" id="page-resumen">
+  <div class="page-header"><div class="page-title">Resumen del mes</div></div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Total facturado</div><div class="metric-value">$187.400</div><div class="metric-sub">Junio 2025</div></div>
+    <div class="metric"><div class="metric-label">Impresión</div><div class="metric-value">$121.000</div><div class="metric-sub">64.5% del total</div></div>
+    <div class="metric"><div class="metric-label">Diseño</div><div class="metric-value">$66.400</div><div class="metric-sub">35.5% del total</div></div>
+    <div class="metric"><div class="metric-label">Trabajos completados</div><div class="metric-value">11</div><div class="metric-sub">7 impresión · 4 diseño</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--purple)"></i> Facturación por servicio</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-row"><div class="chart-label">Impresión 3D</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:65%;background:var(--purple)"></div></div><div class="chart-val">$121.000</div></div>
+        <div class="chart-row"><div class="chart-label">Diseño 3D</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:35%;background:var(--teal)"></div></div><div class="chart-val">$66.400</div></div>
+      </div>
+      <div style="margin-top:1rem">
+        <div class="card-title" style="margin-bottom:.5rem"><i class="ti ti-package" style="color:var(--amber)"></i> Material más usado</div>
+        <div class="chart-row"><div class="chart-label">PLA (varios)</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:55%;background:#534AB7"></div></div><div class="chart-val">2.8 kg</div></div>
+        <div class="chart-row"><div class="chart-label">PETG</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:25%;background:#378ADD"></div></div><div class="chart-val">1.2 kg</div></div>
+        <div class="chart-row"><div class="chart-label">Resina</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:15%;background:#1D9E75"></div></div><div class="chart-val">0.7 kg</div></div>
+        <div class="chart-row"><div class="chart-label">ABS</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:10%;background:#BA7517"></div></div><div class="chart-val">0.5 kg</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-users" style="color:var(--teal)"></i> Clientes top del mes</div>
+      <div class="chart-bar-wrap">
+        <div class="chart-row"><div class="chart-label">Imprenta Sur</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:60%;background:var(--teal)"></div></div><div class="chart-val">$32.000</div></div>
+        <div class="chart-row"><div class="chart-label">Maker Córdoba</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:50%;background:var(--purple)"></div></div><div class="chart-val">$26.000</div></div>
+        <div class="chart-row"><div class="chart-label">García, R.</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:42%;background:var(--purple)"></div></div><div class="chart-val">$22.000</div></div>
+        <div class="chart-row"><div class="chart-label">3D Rosario</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:35%;background:var(--teal)"></div></div><div class="chart-val">$18.000</div></div>
+      </div>
+      <div style="margin-top:1rem">
+        <div class="card-title" style="margin-bottom:.5rem"><i class="ti ti-cash" style="color:var(--green)"></i> Estado de cobros</div>
+        <div class="chart-row"><div class="chart-label">Cobrado</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:74%;background:var(--green)"></div></div><div class="chart-val">$138.900</div></div>
+        <div class="chart-row"><div class="chart-label">Pendiente</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:26%;background:#D85A30"></div></div><div class="chart-val">$48.500</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// NAV
+function nav(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  el.classList.add('active');
+}
+
+// FECHA
+var dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+var hoy = new Date();
+document.getElementById('fecha-hoy').textContent = dias[hoy.getDay()] + ', ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()] + ' ' + hoy.getFullYear();
+
+// SET DEFAULT DATES
+document.querySelectorAll('input[type=date]').forEach(function(el) {
+  el.value = hoy.toISOString().split('T')[0];
+});
+
+// FILTER TABLES
+function filterTable(tablaId, tipo, el) {
+  document.querySelectorAll('#' + tablaId + ' tr[data-tipo]').forEach(function(r) {
+    r.style.display = (tipo === 'todos' || r.dataset.tipo === tipo) ? '' : 'none';
+  });
+  el.closest('.tab-row').querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+// PRESUP TABS
+function switchPresup(tipo, el) {
+  document.querySelectorAll('.presup-section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('presup-' + tipo).classList.add('active');
+  el.closest('.tab-row').querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+// FORMAT
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+
+// CALC IMPRESION
+function calcImp() {
+  var peso = parseFloat(document.getElementById('peso').value) || 0;
+  var ths = parseFloat(document.getElementById('ths').value) || 0;
+  var cant = parseFloat(document.getElementById('cant').value) || 1;
+  var cmat = parseFloat(document.getElementById('cmat').value) || 0;
+  var cmaq = parseFloat(document.getElementById('cmaq').value) || 0;
+  var mob = parseFloat(document.getElementById('mob').value) || 0;
+  var margen = parseFloat(document.getElementById('margen').value) || 0;
+  var mat = peso * cmat * cant;
+  var maq = ths * cmaq * cant;
+  var sub = mat + maq + mob;
+  var mv = sub * (margen / 100);
+  var total = sub + mv;
+  document.getElementById('r-mat').textContent = fmt(mat);
+  document.getElementById('r-maq').textContent = fmt(maq);
+  document.getElementById('r-mob').textContent = fmt(mob);
+  document.getElementById('r-sub').textContent = fmt(sub);
+  document.getElementById('r-mlabel').textContent = 'Margen (' + Math.round(margen) + '%)';
+  document.getElementById('r-mval').textContent = fmt(mv);
+  document.getElementById('r-total').textContent = fmt(total);
+}
+
+// CALC DISEÑO
+function calcDis() {
+  var hs = parseFloat(document.getElementById('dhs').value) || 0;
+  var ph = parseFloat(document.getElementById('dph').value) || 0;
+  var comp = parseFloat(document.getElementById('dcomp').value) || 1;
+  var total = hs * ph * comp;
+  document.getElementById('d-total').textContent = fmt(total);
+}
+
+// GENERAR PRESUPUESTO IMP
+function generarPresupImp() {
+  var cliente = document.getElementById('pi-cliente').value || 'Sin nombre';
+  var desc = document.getElementById('pi-desc').value || '—';
+  var mat = document.getElementById('pi-mat').value;
+  var total = document.getElementById('r-total').textContent;
+  var fecha = new Date();
+  var validez = new Date(fecha); validez.setDate(validez.getDate() + 7);
+  document.getElementById('doc-cliente').textContent = cliente;
+  document.getElementById('doc-trabajo').textContent = desc;
+  document.getElementById('doc-mat').textContent = mat;
+  document.getElementById('doc-total').textContent = total;
+  document.getElementById('doc-fecha').textContent = fecha.toLocaleDateString('es-AR');
+  document.getElementById('doc-validez').textContent = validez.toLocaleDateString('es-AR');
+  document.getElementById('doc-num').textContent = '#P-' + String(Math.floor(Math.random()*900)+100);
+  document.getElementById('presup-imp-doc').style.display = 'block';
+  document.getElementById('presup-imp-doc').scrollIntoView({behavior:'smooth'});
+}
+
+// COMPARTIR PRESUPUESTO WPP
+function compartirPresupWpp() {
+  var cliente = document.getElementById('doc-cliente').textContent;
+  var trabajo = document.getElementById('doc-trabajo').textContent;
+  var total = document.getElementById('doc-total').textContent;
+  var num = document.getElementById('doc-num').textContent;
+  var validez = document.getElementById('doc-validez').textContent;
+  var msg = 'Hola ' + cliente + ', te enviamos el presupuesto:\n\n'
+    + '*Print3D Studio — Presupuesto ' + num + '*\n'
+    + '📋 Trabajo: ' + trabajo + '\n'
+    + '💰 Total: *' + total + '*\n'
+    + '📅 Válido hasta: ' + validez + '\n\n'
+    + '¿Tenés alguna consulta? ¡Estamos a disposición!';
+  document.getElementById('wpp-msg-edit').value = msg;
+  document.getElementById('wpp-msg-preview').innerHTML = msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>');
+  document.getElementById('wpp-modal').classList.add('open');
+}
+
+function compartirDisWpp() {
+  var cliente = document.getElementById('pd-cliente').value || 'Cliente';
+  var desc = document.getElementById('pd-desc').value || 'Diseño 3D';
+  var total = document.getElementById('d-total').textContent;
+  var hs = document.getElementById('dhs').value || '0';
+  var msg = 'Hola ' + cliente + ', te enviamos la cotización de diseño 3D:\n\n'
+    + '*Print3D Studio — Cotización diseño*\n'
+    + '📐 Trabajo: ' + desc + '\n'
+    + '⏱ Horas estimadas: ' + hs + 'hs\n'
+    + '💰 Total: *' + total + '*\n\n'
+    + '¡Avisanos si querés que arrancemos!';
+  document.getElementById('wpp-msg-edit').value = msg;
+  document.getElementById('wpp-msg-preview').innerHTML = msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>');
+  document.getElementById('wpp-modal').classList.add('open');
+}
+
+function copiarPresup() {
+  var cliente = document.getElementById('doc-cliente').textContent;
+  var trabajo = document.getElementById('doc-trabajo').textContent;
+  var total = document.getElementById('doc-total').textContent;
+  var num = document.getElementById('doc-num').textContent;
+  var validez = document.getElementById('doc-validez').textContent;
+  var texto = 'PRESUPUESTO ' + num + ' — Print3D Studio\n'
+    + 'Cliente: ' + cliente + '\n'
+    + 'Trabajo: ' + trabajo + '\n'
+    + 'Total: ' + total + '\n'
+    + 'Válido hasta: ' + validez;
+  navigator.clipboard.writeText(texto).then(function() { alert('¡Presupuesto copiado al portapapeles!'); });
+}
+
+// WPP MODAL
+function openWpp(nombre, prefijo, pedido, total, estado) {
+  var msg = 'Hola *' + nombre + '*, te avisamos sobre tu pedido:\n\n'
+    + '📦 Pedido: ' + pedido + '\n'
+    + (total ? '💰 Total: ' + total + '\n' : '')
+    + '✅ Estado: ' + estado + '\n\n'
+    + '— Print3D Studio';
+  document.getElementById('wpp-msg-edit').value = msg;
+  document.getElementById('wpp-msg-preview').innerHTML = msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>');
+  document.getElementById('wpp-modal').classList.add('open');
+}
+
+function closeWpp() {
+  document.getElementById('wpp-modal').classList.remove('open');
+}
+
+function sendWpp() {
+  var num = document.getElementById('wpp-number').value.replace(/\D/g,'');
+  var msg = document.getElementById('wpp-msg-edit').value;
+  if (!num) { alert('Ingresá el número del cliente'); return; }
+  var url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  closeWpp();
+}
+
+// STOCK VIEW
+var spools = [
+  {mat:'PLA',color:'Blanco',kg:2.4,min:1.0,precio:'$4.200/kg',prov:'3DStore BA',fill:'#EEEDFE',hub:'#534AB7',hole:'#EEEDFE',stroke:'#AFA9EC'},
+  {mat:'PLA',color:'Negro',kg:0.3,min:1.0,precio:'$4.200/kg',prov:'3DStore BA',fill:'#3a3a38',hub:'#1a1a18',hole:'#3a3a38',stroke:'#2C2C2A'},
+  {mat:'PETG',color:'Gris',kg:0.6,min:1.0,precio:'$5.100/kg',prov:'FilamentAR',fill:'#B4B2A9',hub:'#5F5E5A',hole:'#B4B2A9',stroke:'#888780'},
+  {mat:'PETG',color:'Transparente',kg:1.8,min:0.5,precio:'$5.100/kg',prov:'FilamentAR',fill:'#E6F1FB',hub:'#378ADD',hole:'#E6F1FB',stroke:'#85B7EB'},
+  {mat:'ABS',color:'Naranja',kg:1.2,min:0.5,precio:'$4.800/kg',prov:'3DStore BA',fill:'#F5C4B3',hub:'#993C1D',hole:'#F5C4B3',stroke:'#D85A30'},
+  {mat:'TPU',color:'Verde',kg:0.8,min:0.3,precio:'$7.600/kg',prov:'Poly3D',fill:'#9FE1CB',hub:'#0F6E56',hole:'#9FE1CB',stroke:'#1D9E75'},
+  {mat:'Resina',color:'Gris claro',kg:1.5,min:0.5,precio:'$6.900/L',prov:'ResinsAR',fill:'#D3D1C7',hub:'#444441',hole:'#D3D1C7',stroke:'#888780'},
+];
+
+function spoolSVG(s, size) {
+  size = size || 68;
+  var cx = size/2, cy = size/2;
+  var rc = size * 0.42, rh = size * 0.18, rhole = size * 0.08;
+  var spokes = '';
+  for (var i = 0; i < 8; i++) {
+    var a = i * 45 * Math.PI / 180;
+    spokes += '<line x1="'+(cx+rhole*Math.cos(a)).toFixed(1)+'" y1="'+(cy+rhole*Math.sin(a)).toFixed(1)+'" x2="'+(cx+rh*0.9*Math.cos(a)).toFixed(1)+'" y2="'+(cy+rh*0.9*Math.sin(a)).toFixed(1)+'" stroke="'+s.hub+'" stroke-width="1.5" opacity="0.4"/>';
+  }
+  if (s.mat === 'Resina') {
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'
+      +'<rect x="'+(cx-rc*0.65).toFixed(1)+'" y="'+(cy-rc).toFixed(1)+'" width="'+(rc*1.3).toFixed(1)+'" height="'+(rc*2).toFixed(1)+'" rx="5" fill="'+s.fill+'" stroke="'+s.stroke+'" stroke-width="1.5"/>'
+      +'<rect x="'+(cx-rc*0.5).toFixed(1)+'" y="'+(cy-rc*0.55).toFixed(1)+'" width="'+(rc*1).toFixed(1)+'" height="'+(rc*1.1).toFixed(1)+'" rx="3" fill="'+s.hub+'" opacity="0.25"/>'
+      +'<text x="'+cx.toFixed(1)+'" y="'+(cy+5).toFixed(1)+'" text-anchor="middle" font-size="10" fill="'+s.hub+'" font-family="sans-serif" font-weight="600">ml</text>'
+      +'</svg>';
+  }
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+rc.toFixed(1)+'" fill="'+s.fill+'" stroke="'+s.stroke+'" stroke-width="2"/>'
+    +spokes
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+rh.toFixed(1)+'" fill="'+s.hub+'"/>'
+    +'<circle cx="'+cx+'" cy="'+cy+'" r="'+rhole.toFixed(1)+'" fill="'+s.hole+'" stroke="'+s.stroke+'" stroke-width="1"/>'
+    +'</svg>';
+}
+
+function buildSpools() {
+  var g = document.getElementById('spool-grid');
+  if (!g) return;
+  g.innerHTML = '';
+  spools.forEach(function(s) {
+    var isLow = s.kg < s.min;
+    var pct = Math.min(100, Math.round((s.kg / (s.min * 3)) * 100));
+    var barColor = isLow ? '#D85A30' : '#534AB7';
+    var div = document.createElement('div');
+    div.className = 'spool-card' + (isLow ? ' low' : '');
+    div.innerHTML = '<div class="spool-visual">' + spoolSVG(s, 70) + '</div>'
+      + '<div class="spool-name">' + s.mat + '</div>'
+      + '<div class="spool-sub">' + s.color + ' · ' + s.prov + '</div>'
+      + (isLow ? '<span class="badge b-low" style="margin-bottom:6px">Stock bajo</span>' : '<span class="badge b-ok" style="margin-bottom:6px">OK</span>')
+      + '<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'
+      + '<div class="spool-kg"><span>'+s.kg+' kg</span><span>mín '+s.min+'</span></div>'
+      + '<div class="spool-price">'+s.precio+'</div>';
+    g.appendChild(div);
+  });
+}
+
+function setView(v) {
+  document.getElementById('view-cards').style.display = v === 'cards' ? '' : 'none';
+  document.getElementById('view-list').style.display = v === 'list' ? '' : 'none';
+  document.getElementById('btn-cards').style.background = v === 'cards' ? 'var(--gray-bg)' : '';
+  document.getElementById('btn-list').style.background = v === 'list' ? 'var(--gray-bg)' : '';
+}
+
+buildSpools();
+</script>
+</body>
+</html>

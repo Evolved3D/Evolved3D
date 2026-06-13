@@ -692,11 +692,19 @@ function renderUsuarios(){
   USERS.forEach(function(u){
     var ini=u.name.charAt(0).toUpperCase();
     var esSelf=currentUser&&u.email===currentUser.email;
+    var selfBadge=esSelf?' <span style="font-size:10px;background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:10px;font-weight:600">Yo</span>':'';
     html+='<div class="user-list-item">';
     html+='<div class="user-list-avatar">'+ini+'</div>';
-    html+='<div class="user-list-info"><div class="user-list-name">'+u.name+(esSelf?' <span style="font-size:10px;background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:10px;font-weight:600">Yo</span>':' ')+'</div><div class="user-list-email">'+u.email+'</div></div>';
-    html+='<div style="display:flex;align-items:center;gap:8px"><span class="badge b-info">'+u.role+'</span><button class="btn btn-sm" onclick="abrirCambiarPassOtro(''+u.email+'')"><i class="ti ti-lock"></i> Cambiar clave</button></div>';
+    html+='<div class="user-list-info">';
+    html+='<div class="user-list-name">'+u.name+selfBadge+'</div>';
+    html+='<div class="user-list-email">'+u.email+'</div>';
     html+='</div>';
+    html+='<div style="display:flex;align-items:center;gap:8px">';
+    html+='<span class="badge b-info">'+u.role+'</span>';
+    var emailEsc=u.email.replace(/'/g,"\'");
+    html+='<button class="btn btn-sm" onclick="abrirCambiarPassOtro(\'' +emailEsc+ '\')">';
+    html+='<i class="ti ti-lock"></i> Cambiar clave</button>';
+    html+='</div></div>';
   });
   document.getElementById('usuarios-list').innerHTML=html;
 }

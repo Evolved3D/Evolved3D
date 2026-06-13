@@ -881,10 +881,10 @@ function verDetallePedido(id){
 }
 function eliminarItem(tipo,id){
   document.getElementById('confirm-delete-btn').onclick=function(){
-    if(tipo==='pedido')db.pedidos=db.pedidos.filter(function(x){return x.id!=id});
-    if(tipo==='cliente')db.clientes=db.clientes.filter(function(x){return x.id!=id});
-    if(tipo==='maquina')db.maquinas=db.maquinas.filter(function(x){return x.id!=id});
-    if(tipo==='material')db.materiales=db.materiales.filter(function(x){return x.id!=id});
+    if(tipo===1||tipo==='pedido')db.pedidos=db.pedidos.filter(function(x){return x.id!=id});
+    if(tipo===2||tipo==='cliente')db.clientes=db.clientes.filter(function(x){return x.id!=id});
+    if(tipo===3||tipo==='maquina')db.maquinas=db.maquinas.filter(function(x){return x.id!=id});
+    if(tipo===4||tipo==='material')db.materiales=db.materiales.filter(function(x){return x.id!=id});
     closeModal('modal-confirm');save();
   };
   openModal('modal-confirm');
@@ -908,7 +908,7 @@ function renderPedidos(filtro){
     html+='<button class="btn btn-sm" onclick="verDetallePedido('+p.id+')" title="Ver detalle"><i class="ti ti-eye"></i></button>';
     if(p.tel&&(p.estado==='Listo'||p.estado==='En proceso'))html+='<button class="btn btn-sm btn-wpp" onclick="openWppPedido('+p.id+')"><i class="ti ti-brand-whatsapp"></i></button>';
     html+='<button class="btn btn-sm" onclick="abrirModalPedido('+p.id+')" title="Editar"><i class="ti ti-edit"></i></button>';
-    html+='<button class="btn btn-sm btn-danger" onclick="eliminarItem('pedido','+p.id+')" title="Eliminar"><i class="ti ti-trash"></i></button>';
+    html+='<button class="btn btn-sm btn-danger" onclick="eliminarItem(1,'+p.id+')" title="Eliminar"><i class="ti ti-trash"></i></button>';
     html+='</div></td></tr>';
   });
   html+='</table>';c.innerHTML=html;
@@ -936,7 +936,7 @@ function renderClientes(){
   db.clientes.forEach(function(cl){
     var tc=cl.tipo==='imp'?'<span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':cl.tipo==='dis'?'<span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>':'<span class="badge b-accent">Ambos</span>';
     var np=db.pedidos.filter(function(p){return p.cliente.toLowerCase()===cl.nombre.toLowerCase()}).length;
-    html+='<tr><td>'+cl.nombre+'</td><td>'+(cl.tel||'—')+'</td><td>'+(cl.email||'—')+'</td><td>'+tc+'</td><td>'+np+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalCliente('+cl.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('cliente','+cl.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+    html+='<tr><td>'+cl.nombre+'</td><td>'+(cl.tel||'—')+'</td><td>'+(cl.email||'—')+'</td><td>'+tc+'</td><td>'+np+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalCliente('+cl.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem(2,'+cl.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
   });
   html+='</table>';document.getElementById('clientes-container').innerHTML=html;
 }
@@ -964,7 +964,7 @@ function renderMaquinas(){
   db.maquinas.forEach(function(m){
     var bc=sb[m.estado]||'b-info';
     var barColor=m.estado==='Mantenimiento'||m.estado==='Fuera de servicio'?'#D85A30':'var(--primary)';
-    html+='<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div class="mcard-name">'+m.nombre+'</div><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaquina('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('maquina','+m.id+')"><i class="ti ti-trash"></i></button></div></div>';
+    html+='<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div class="mcard-name">'+m.nombre+'</div><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaquina('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem(3,'+m.id+')"><i class="ti ti-trash"></i></button></div></div>';
     html+='<span class="badge '+bc+'" style="margin-bottom:8px;display:inline-flex">'+m.estado+'</span>';
     html+='<div class="prog-bar"><div class="prog-fill" style="width:'+m.pct+'%;background:'+barColor+'"></div></div>';
     html+='<div style="font-size:11px;color:var(--text-2)">'+m.pct+'%'+(m.trabajo?' · '+m.trabajo:'')+'</div>';
@@ -999,7 +999,7 @@ function renderStock(){
   db.materiales.forEach(function(m){
     var isLow=m.stock<m.min,pct=Math.min(100,Math.round((m.stock/(m.min*3))*100));
     gHtml+='<div class="spool-card'+(isLow?' low':'')+'">';
-    gHtml+='<div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:4px"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('material','+m.id+')"><i class="ti ti-trash"></i></button></div>';
+    gHtml+='<div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:4px"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem(4,'+m.id+')"><i class="ti ti-trash"></i></button></div>';
     gHtml+='<div class="spool-visual">'+spoolSVG(m.hex)+'</div>';
     gHtml+='<div style="font-size:13px;font-weight:700;color:var(--text)">'+m.tipo+'</div>';
     gHtml+='<div style="font-size:11px;color:var(--text-2);margin-bottom:8px">'+m.color+(m.prov?' · '+m.prov:'')+'</div>';
@@ -1010,7 +1010,7 @@ function renderStock(){
   });
   grid.innerHTML=gHtml;
   var lHtml='<table><colgroup><col style="width:5%"><col style="width:13%"><col style="width:12%"><col style="width:10%"><col style="width:8%"><col style="width:11%"><col style="width:12%"><col style="width:17%"><col style="width:12%"></colgroup><tr><th></th><th>Material</th><th>Color</th><th>Stock</th><th>Mín.</th><th>Estado</th><th>Precio</th><th>Proveedor</th><th></th></tr>';
-  db.materiales.forEach(function(m){var isLow=m.stock<m.min;lHtml+='<tr><td>'+spoolSVG(m.hex,20)+'</td><td>'+m.tipo+'</td><td>'+m.color+'</td><td>'+m.stock+' kg</td><td>'+m.min+'</td><td>'+(isLow?'<span class="badge b-low">Stock bajo</span>':'<span class="badge b-ok">OK</span>')+'</td><td>'+fmt(m.precio)+'</td><td>'+(m.prov||'—')+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('material','+m.id+')"><i class="ti ti-trash"></i></button></div></td></tr>'});
+  db.materiales.forEach(function(m){var isLow=m.stock<m.min;lHtml+='<tr><td>'+spoolSVG(m.hex,20)+'</td><td>'+m.tipo+'</td><td>'+m.color+'</td><td>'+m.stock+' kg</td><td>'+m.min+'</td><td>'+(isLow?'<span class="badge b-low">Stock bajo</span>':'<span class="badge b-ok">OK</span>')+'</td><td>'+fmt(m.precio)+'</td><td>'+(m.prov||'—')+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem(4,'+m.id+')"><i class="ti ti-trash"></i></button></div></td></tr>'});
   lHtml+='</table>';listC.innerHTML=lHtml;
 }
 function setView(v){document.getElementById('view-cards').style.display=v==='cards'?'':'none';document.getElementById('view-list').style.display=v==='list'?'':'none';document.getElementById('btn-cards').style.background=v==='cards'?'var(--gray-bg)':'';document.getElementById('btn-list').style.background=v==='list'?'var(--gray-bg)':''}

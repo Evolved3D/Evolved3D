@@ -84,6 +84,7 @@ tr:hover td{background:#f8fafc}
 .b-gray{background:#eee;color:#555}
 .type-imp{background:var(--primary-light);color:var(--primary-dark);display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
 .type-dis{background:var(--accent-light);color:var(--accent-dark);display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+.type-both{background:#F0EBF8;color:#6B3FA0;display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
 .btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border-strong);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;font-weight:500}
 .btn:hover{background:var(--gray-bg)}
 .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
@@ -236,7 +237,7 @@ textarea{resize:vertical;min-height:56px}
       <div class="form-group"><label class="form-label">Teléfono WhatsApp</label><input id="p-tel" placeholder="5492664123456"/></div>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Tipo *</label><select id="p-tipo"><option value="imp">Impresión 3D</option><option value="dis">Diseño 3D</option></select></div>
+      <div class="form-group"><label class="form-label">Tipo *</label><select id="p-tipo"><option value="imp">Impresión 3D</option><option value="dis">Diseño 3D</option><option value="ambos">Diseño e Impresión 3D</option></select></div>
       <div class="form-group"><label class="form-label">Total ($)</label><input id="p-total" type="number" placeholder="0"/></div>
     </div>
     <div class="form-grid">
@@ -453,6 +454,7 @@ textarea{resize:vertical;min-height:56px}
     <button class="tab active" onclick="filtrarPedidos('todos',this)">Todos</button>
     <button class="tab" onclick="filtrarPedidos('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión</button>
     <button class="tab" onclick="filtrarPedidos('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño</button>
+    <button class="tab" onclick="filtrarPedidos('ambos',this)"><i class="ti ti-layers" style="font-size:12px;vertical-align:-1px"></i> Dis. + Imp.</button>
   </div>
   <div class="card" id="pedidos-container"><div class="empty-state"><i class="ti ti-clipboard"></i><p>No hay pedidos cargados.</p><button class="btn btn-primary" onclick="abrirModalPedido()"><i class="ti ti-plus"></i> Primer pedido</button></div></div>
 </div>
@@ -463,6 +465,7 @@ textarea{resize:vertical;min-height:56px}
   <div class="tab-row">
     <button class="tab active" onclick="switchPresup('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión 3D</button>
     <button class="tab" onclick="switchPresup('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño 3D</button>
+    <button class="tab" onclick="switchPresup('ambos',this)"><i class="ti ti-layers" style="font-size:12px;vertical-align:-1px"></i> Diseño + Impresión</button>
   </div>
   <div class="presup-section active" id="presup-imp">
     <div class="two-col">
@@ -534,6 +537,104 @@ textarea{resize:vertical;min-height:56px}
       </div>
     </div>
   </div>
+  <div class="presup-section" id="presup-ambos">
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.875rem;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-layers" style="color:#6B3FA0"></i> Diseño + Impresión 3D — cotización combinada
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <!-- Columna diseño -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--accent-dark);margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-vector" style="font-size:14px"></i> Parte diseño</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Cliente</label><input id="ab-cliente" placeholder="Nombre o empresa"/></div>
+            <div class="form-group"><label class="form-label">Fecha</label><input type="date" id="ab-fecha"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Horas de diseño</label><input type="number" id="ab-dhs" placeholder="0" oninput="calcAmbos()"/></div>
+            <div class="form-group"><label class="form-label">Precio por hora ($)</label><input type="number" id="ab-dph" value="2500" oninput="calcAmbos()"/></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Complejidad diseño</label>
+            <select id="ab-dcomp" onchange="calcAmbos()">
+              <option value="1">Baja — sin recargo</option>
+              <option value="1.2">Media — +20%</option>
+              <option value="1.5">Alta — +50%</option>
+            </select>
+          </div>
+        </div>
+        <!-- Columna impresión -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-printer" style="font-size:14px"></i> Parte impresión</div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Material</label><select id="ab-mat"><option>PLA</option><option>PETG</option><option>ABS</option><option>TPU</option><option>Resina</option></select></div>
+            <div class="form-group"><label class="form-label">Peso estimado (g)</label><input type="number" id="ab-peso" placeholder="0" oninput="calcAmbos()"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Tiempo impresión (hs)</label><input type="number" id="ab-ths" placeholder="0" oninput="calcAmbos()"/></div>
+            <div class="form-group"><label class="form-label">Costo material ($/g)</label><input type="number" id="ab-cmat" value="120" oninput="calcAmbos()"/></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Costo máquina ($/h)</label><input type="number" id="ab-cmaq" value="800" oninput="calcAmbos()"/></div>
+            <div class="form-group"><label class="form-label">Mano de obra ($)</label><input type="number" id="ab-mob" value="5000" oninput="calcAmbos()"/></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:4px">
+        <div class="form-group"><label class="form-label">Margen general (%)</label><input type="number" id="ab-margen" value="30" oninput="calcAmbos()"/></div>
+        <div class="form-group"><label class="form-label">Descripción del trabajo</label><input id="ab-desc" placeholder="Descripción completa"/></div>
+      </div>
+    </div>
+    <!-- Resultado combinado -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.875rem;display:flex;align-items:center;gap:6px"><i class="ti ti-calculator" style="color:#6B3FA0"></i> Desglose combinado</div>
+        <table>
+          <tr><th>Concepto</th><th style="text-align:right">Subtotal</th></tr>
+          <tr><td><i class="ti ti-vector" style="font-size:11px;color:var(--accent-dark)"></i> Diseño (horas)</td><td style="text-align:right" id="ab-r-dis">$0</td></tr>
+          <tr><td><i class="ti ti-package" style="font-size:11px;color:var(--primary)"></i> Material impresión</td><td style="text-align:right" id="ab-r-mat">$0</td></tr>
+          <tr><td><i class="ti ti-tool" style="font-size:11px;color:var(--primary)"></i> Tiempo máquina</td><td style="text-align:right" id="ab-r-maq">$0</td></tr>
+          <tr><td><i class="ti ti-user" style="font-size:11px;color:var(--text-2)"></i> Mano de obra</td><td style="text-align:right" id="ab-r-mob">$0</td></tr>
+          <tr><td>Subtotal</td><td style="text-align:right" id="ab-r-sub">$0</td></tr>
+          <tr><td id="ab-r-mlabel">Margen (30%)</td><td style="text-align:right" id="ab-r-mval">$0</td></tr>
+        </table>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:6px;border-top:2px solid var(--border)">
+          <span style="font-size:14px;font-weight:700">Total estimado</span>
+          <span style="font-size:26px;font-weight:800;color:#6B3FA0" id="ab-r-total">$0</span>
+        </div>
+      </div>
+      <div>
+        <div id="presup-ambos-doc" style="display:none;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:.875rem;display:flex;align-items:center;gap:6px"><i class="ti ti-file-text" style="color:var(--accent)"></i> Listo para compartir</div>
+          <div style="background:var(--gray-bg);border-radius:var(--radius-lg);padding:1rem">
+            <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+                <div><div style="font-size:15px;font-weight:800;color:var(--primary)">Evolved3D</div><div style="font-size:11px;color:var(--text-3)">Diseño e Impresión 3D</div></div>
+                <div style="text-align:right"><div style="font-size:12px;font-weight:700" id="ab-doc-num">#P-001</div><div style="font-size:11px;color:var(--text-3)" id="ab-doc-fecha"></div></div>
+              </div>
+              <table style="margin-bottom:10px">
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Cliente</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="ab-doc-cliente">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Trabajo</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="ab-doc-trabajo">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Incluye</td><td style="font-weight:600;font-size:12px;text-align:right;border:none">Diseño 3D + Impresión</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Cotizado por</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="ab-doc-cotizador">—</td></tr>
+                <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Válido hasta</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="ab-doc-validez">—</td></tr>
+              </table>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:2px solid var(--border)">
+                <span style="font-weight:700">Total</span>
+                <span style="font-size:20px;font-weight:800;color:#6B3FA0" id="ab-doc-total">$0</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn btn-wpp" onclick="compartirAmbosWpp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+            <button class="btn" onclick="copiarAmbos()"><i class="ti ti-copy"></i> Copiar</button>
+            <button class="btn" onclick="window.print()"><i class="ti ti-printer"></i> Imprimir</button>
+          </div>
+        </div>
+        <button style="width:100%;justify-content:center;background:#6B3FA0;color:#fff;border-color:#6B3FA0;display:flex;align-items:center;gap:5px;font-size:13px;padding:7px 14px;border-radius:var(--radius);border:1px solid;cursor:pointer;font-family:inherit;font-weight:500" onclick="generarPresupAmbos()"><i class="ti ti-file-check"></i> Generar presupuesto combinado</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- COBROS -->
@@ -567,6 +668,7 @@ textarea{resize:vertical;min-height:56px}
     <button class="tab active" onclick="filtrarTrabajos('todos',this)">Todos</button>
     <button class="tab" onclick="filtrarTrabajos('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión</button>
     <button class="tab" onclick="filtrarTrabajos('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño</button>
+    <button class="tab" onclick="filtrarTrabajos('ambos',this)"><i class="ti ti-layers" style="font-size:12px;vertical-align:-1px"></i> Dis. + Imp.</button>
   </div>
   <div class="card" id="trabajos-container"><div class="empty-state"><i class="ti ti-checklist"></i><p>Los trabajos se generan desde los pedidos activos.</p></div></div>
 </div>
@@ -898,7 +1000,7 @@ function renderPedidos(filtro){
   var sc={'Presupuesto':'b-purple','Confirmado':'b-info','En proceso':'b-warn','Imprimiendo':'b-info','Listo':'b-ok','Entregado':'b-ok'};
   var html='<table><colgroup><col style="width:5%"><col style="width:14%"><col style="width:16%"><col style="width:11%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col style="width:22%"></colgroup><tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Tipo</th><th>Total</th><th>Estado</th><th>Responsable</th><th>Acciones</th></tr>';
   list.slice().reverse().forEach(function(p){
-    var tipoB=p.tipo==='imp'?'<span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':'<span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>';
+    var tipoB=p.tipo==='imp'?'<span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Impresión</span>':p.tipo==='dis'?'<span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Diseño</span>':'<span class="type-both"><i class="ti ti-layers" style="font-size:10px"></i>Dis. + Imp.</span>';
     var bc=sc[p.estado]||'b-info';
     var archIco='';
     if(p.archivo){var ec={stl:'ext-stl','3mf':'ext-3mf',obj:'ext-obj',step:'ext-step',stp:'ext-step',f3d:'ext-file',gcode:'ext-file',amf:'ext-file'};archIco='<span class="file-ext '+(ec[p.archivo.ext]||'ext-file')+'" style="width:auto;padding:2px 5px;border-radius:4px;font-size:10px;margin-right:2px">'+p.archivo.ext.toUpperCase()+'</span>'}
@@ -1116,6 +1218,67 @@ function renderAll(){
   renderStock();renderTrabajos();renderCobros();renderResumen();renderUsuarios();
 }
 
+function calcAmbos(){
+  var dhs=parseFloat(document.getElementById('ab-dhs').value)||0;
+  var dph=parseFloat(document.getElementById('ab-dph').value)||0;
+  var dcomp=parseFloat(document.getElementById('ab-dcomp').value)||1;
+  var peso=parseFloat(document.getElementById('ab-peso').value)||0;
+  var ths=parseFloat(document.getElementById('ab-ths').value)||0;
+  var cmat=parseFloat(document.getElementById('ab-cmat').value)||0;
+  var cmaq=parseFloat(document.getElementById('ab-cmaq').value)||0;
+  var mob=parseFloat(document.getElementById('ab-mob').value)||0;
+  var margen=parseFloat(document.getElementById('ab-margen').value)||0;
+  var dis=dhs*dph*dcomp;
+  var mat=peso*cmat;
+  var maq=ths*cmaq;
+  var sub=dis+mat+maq+mob;
+  var mv=sub*(margen/100);
+  var total=sub+mv;
+  document.getElementById('ab-r-dis').textContent=fmt(dis);
+  document.getElementById('ab-r-mat').textContent=fmt(mat);
+  document.getElementById('ab-r-maq').textContent=fmt(maq);
+  document.getElementById('ab-r-mob').textContent=fmt(mob);
+  document.getElementById('ab-r-sub').textContent=fmt(sub);
+  document.getElementById('ab-r-mlabel').textContent='Margen ('+Math.round(margen)+'%)';
+  document.getElementById('ab-r-mval').textContent=fmt(mv);
+  document.getElementById('ab-r-total').textContent=fmt(total);
+}
+function generarPresupAmbos(){
+  var cliente=document.getElementById('ab-cliente').value||'Sin nombre';
+  var desc=document.getElementById('ab-desc').value||'Diseño + Impresión 3D';
+  var total=document.getElementById('ab-r-total').textContent;
+  var fecha=new Date();
+  var validez=new Date(fecha);validez.setDate(validez.getDate()+7);
+  document.getElementById('ab-doc-cliente').textContent=cliente;
+  document.getElementById('ab-doc-trabajo').textContent=desc;
+  document.getElementById('ab-doc-cotizador').textContent=currentUserName();
+  document.getElementById('ab-doc-total').textContent=total;
+  document.getElementById('ab-doc-fecha').textContent=fecha.toLocaleDateString('es-AR');
+  document.getElementById('ab-doc-validez').textContent=validez.toLocaleDateString('es-AR');
+  document.getElementById('ab-doc-num').textContent='#P-'+String(Math.floor(Math.random()*900)+100);
+  document.getElementById('presup-ambos-doc').style.display='block';
+  document.getElementById('presup-ambos-doc').scrollIntoView({behavior:'smooth'});
+}
+function compartirAmbosWpp(){
+  var msg='Hola '+document.getElementById('ab-doc-cliente').textContent+'! Te enviamos el presupuesto de *Evolved3D*:\n\n'+
+    '📋 '+document.getElementById('ab-doc-num').textContent+'\n'+
+    '📐 Trabajo: '+document.getElementById('ab-doc-trabajo').textContent+'\n'+
+    '✏ Incluye diseño 3D + impresión\n'+
+    '💰 Total: *'+document.getElementById('ab-doc-total').textContent+'*\n'+
+    '📅 Válido hasta: '+document.getElementById('ab-doc-validez').textContent+'\n\n'+
+    '¿Alguna consulta? ¡Estamos disponibles!';
+  abrirWppModal(msg,'');
+}
+function copiarAmbos(){
+  var texto='PRESUPUESTO '+document.getElementById('ab-doc-num').textContent+' — Evolved3D\n'+
+    'Cliente: '+document.getElementById('ab-doc-cliente').textContent+'\n'+
+    'Trabajo: '+document.getElementById('ab-doc-trabajo').textContent+'\n'+
+    'Incluye: Diseño 3D + Impresión\n'+
+    'Total: '+document.getElementById('ab-doc-total').textContent+'\n'+
+    'Cotizado por: '+document.getElementById('ab-doc-cotizador').textContent+'\n'+
+    'Válido hasta: '+document.getElementById('ab-doc-validez').textContent;
+  navigator.clipboard.writeText(texto).then(function(){alert('¡Copiado!')});
+}
 // INIT
 document.querySelectorAll('input[type=date]').forEach(function(el){if(!el.value)el.value=new Date().toISOString().split('T')[0]});
 if(currentUser){showApp()}

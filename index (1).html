@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolved3D — Sistema de gestión</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+:root{
+  --primary:#3a8fc4;--primary-light:#e8f4fb;--primary-dark:#2a6f9a;
+  --accent:#f5a623;--accent-light:#fef3e0;--accent-dark:#c4821a;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#993C1D;--red-light:#FAECE7;
+  --gray-bg:#f4f6f8;--card-bg:#ffffff;
+  --border:#e2e8ed;--border-strong:#c8d4dc;
+  --text:#1a2a35;--text-2:#5a7080;--text-3:#8a9fac;
+  --radius:8px;--radius-lg:12px;--wpp:#25D366;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gray-bg);color:var(--text);font-size:14px}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a2a35 0%,#2a6f9a 50%,#f5a623 100%)}
+.login-box{background:var(--card-bg);border-radius:16px;padding:2.5rem 2rem;width:380px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo img{width:80px;height:80px;border-radius:50%;border:3px solid var(--primary);object-fit:cover}
+.login-title{font-size:20px;font-weight:700;color:var(--primary);margin-top:10px}
+.login-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.login-error{background:var(--red-light);color:var(--red);border:1px solid #F0997B;border-radius:var(--radius);padding:8px 12px;font-size:12px;margin-bottom:12px;display:none}
+.login-error.show{display:block}
+
+/* APP */
+.app{display:none;flex:1;height:100vh;overflow:hidden}
+.app.visible{display:flex}
+.sidebar{width:220px;min-width:220px;background:var(--card-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sidebar-logo{padding:1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-logo img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--primary)}
+.sidebar-logo-text .title{font-size:13px;font-weight:700;color:var(--primary)}
+.sidebar-logo-text .sub{font-size:10px;color:var(--text-3)}
+.user-badge{margin:0 .75rem .5rem;background:var(--primary-light);border-radius:var(--radius);padding:8px 10px;display:flex;align-items:center;justify-content:space-between}
+.user-badge-info{display:flex;align-items:center;gap:7px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.user-name{font-size:12px;font-weight:600;color:var(--primary-dark)}
+.user-role{font-size:10px;color:var(--primary)}
+.nav-section{font-size:10px;color:var(--text-3);padding:.7rem 1rem .25rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 1rem;cursor:pointer;font-size:13px;color:var(--text-2);border-left:2px solid transparent;transition:all .15s}
+.nav-item:hover{background:var(--gray-bg);color:var(--text)}
+.nav-item.active{background:var(--primary-light);color:var(--primary);border-left:2px solid var(--primary);font-weight:600}
+.nav-item i{font-size:16px}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+.page-title{font-size:20px;font-weight:700;color:var(--text)}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:.875rem;display:flex;align-items:center;gap:6px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.25rem}
+.metric{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.875rem 1rem;border-top:3px solid var(--primary)}
+.metric-label{font-size:11px;color:var(--text-2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+.metric-value{font-size:22px;font-weight:700;color:var(--text)}
+.metric-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.alerts{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem}
+.alert{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);font-size:12px}
+.alert-warn{background:var(--amber-light);color:var(--amber);border:1px solid #EF9F27}
+.alert-danger{background:var(--red-light);color:var(--red);border:1px solid #F0997B}
+.alert-info{background:var(--primary-light);color:var(--primary);border:1px solid #85B7EB}
+.alert-ok{background:var(--green-light);color:var(--green);border:1px solid #97C459}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-3)}
+.empty-state i{font-size:48px;margin-bottom:12px;display:block;color:var(--border-strong)}
+.empty-state p{font-size:14px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+th{text-align:left;font-size:10px;color:var(--text-2);font-weight:700;padding:0 6px 8px 0;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+td{padding:8px 6px 8px 0;border-bottom:1px solid var(--border);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8fafc}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--green-light);color:var(--green)}
+.b-warn{background:var(--amber-light);color:var(--amber)}
+.b-low{background:var(--red-light);color:var(--red)}
+.b-info{background:var(--primary-light);color:var(--primary)}
+.b-purple{background:#EEEDFE;color:#3C3489}
+.b-teal{background:#E1F5EE;color:#0F6E56}
+.b-accent{background:var(--accent-light);color:var(--accent-dark)}
+.b-gray{background:#eee;color:#555}
+.type-imp{background:var(--primary-light);color:var(--primary-dark);display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+.type-dis{background:var(--accent-light);color:var(--accent-dark);display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:5px;font-size:13px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border-strong);background:var(--card-bg);color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;font-weight:500}
+.btn:hover{background:var(--gray-bg)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent-dark)}
+.btn-wpp{background:var(--wpp);color:#fff;border-color:var(--wpp)}
+.btn-wpp:hover{background:#1da851}
+.btn-danger{background:var(--red-light);color:var(--red);border-color:#F0997B}
+.btn-danger:hover{background:#f5c4b3}
+.btn-sm{font-size:12px;padding:4px 9px}
+.btn-icon{padding:6px 9px}
+.tab-row{display:flex;gap:3px;margin-bottom:1rem;background:#e8edf0;padding:3px;border-radius:var(--radius);width:fit-content}
+.tab{padding:5px 14px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text-2);font-weight:500;border:none;background:transparent;font-family:inherit;transition:all .15s}
+.tab.active{background:var(--card-bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card-bg);border-radius:var(--radius-lg);padding:1.5rem;width:520px;max-width:96vw;max-height:92vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;color:var(--text)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.form-label{font-size:12px;color:var(--text-2);font-weight:600}
+input,select,textarea{font-size:13px;padding:8px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--card-bg);color:var(--text);width:100%;font-family:inherit;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,143,196,.1)}
+textarea{resize:vertical;min-height:56px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.presup-section{display:none}.presup-section.active{display:block}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:6px;border-top:2px solid var(--border)}
+.ref-box{background:var(--gray-bg);border-radius:var(--radius);padding:.75rem;margin-bottom:8px}
+.ref-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.ref-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+.ref-row:last-child{border-bottom:none}
+.tip-box{background:var(--primary-light);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--primary-dark);display:flex;gap:7px;margin-top:8px;line-height:1.5}
+.spool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px}
+.spool-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.875rem;transition:border-color .15s}
+.spool-card:hover{border-color:var(--primary)}
+.spool-card.low{border-left:3px solid #D85A30}
+.spool-visual{display:flex;justify-content:center;margin-bottom:10px}
+.prog-bar{height:5px;background:var(--gray-bg);border-radius:3px;overflow:hidden;margin:6px 0 3px}
+.prog-fill{height:100%;border-radius:3px}
+.machine-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.mcard{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
+.mcard-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px}
+.minfo{font-size:11px;color:var(--text-2);margin-top:10px;line-height:1.7}
+.tl{list-style:none}
+.tl li{display:flex;gap:10px;padding-bottom:12px;position:relative}
+.tl li::before{content:"";position:absolute;left:14px;top:26px;bottom:0;width:1px;background:var(--border)}
+.tl li:last-child::before{display:none}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+.tl-dot.done{background:var(--green-light);color:var(--green)}
+.tl-dot.pend{background:var(--amber-light);color:var(--amber)}
+.tl-dot.run{background:var(--primary-light);color:var(--primary)}
+.tl-t{font-size:13px;font-weight:500;color:var(--text);padding-top:3px}
+.tl-s{font-size:11px;color:var(--text-2);margin-top:2px}
+.cobro-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.cobro-row:last-child{border-bottom:none}
+.chart-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.chart-label{font-size:12px;color:var(--text-2);width:130px;flex-shrink:0}
+.chart-bar-bg{flex:1;height:10px;background:var(--gray-bg);border-radius:5px;overflow:hidden}
+.chart-bar-fill{height:100%;border-radius:5px}
+.chart-val{font-size:12px;font-weight:700;color:var(--text);width:80px;text-align:right;flex-shrink:0}
+.wpp-preview{background:#e5ddd5;border-radius:var(--radius);padding:12px;margin-bottom:1rem}
+.wpp-bubble{background:#fff;border-radius:0 10px 10px 10px;padding:10px 12px;font-size:13px;color:#1a1a1a;line-height:1.6;max-width:90%}
+.presup-doc{background:var(--gray-bg);border-radius:var(--radius-lg);padding:1rem}
+.presup-doc-inner{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.share-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.action-btns{display:flex;gap:4px;flex-wrap:wrap}
+.file-upload-area{border:2px dashed var(--border-strong);border-radius:var(--radius);padding:1rem;text-align:center;cursor:pointer;transition:all .15s;background:var(--gray-bg)}
+.file-upload-area:hover,.file-upload-area.dragover{border-color:var(--primary);background:var(--primary-light)}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-light);color:var(--primary-dark);border:1px solid var(--primary);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;margin-top:6px}
+.file-ext{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.ext-stl{background:#3a8fc4}.ext-3mf{background:#f5a623}.ext-obj{background:#3B6D11}.ext-step{background:#534AB7}.ext-file{background:#5a7080}
+.drive-link-box{display:flex;align-items:center;gap:6px;background:#e8f4fb;border:1px solid var(--primary);border-radius:var(--radius);padding:6px 10px;font-size:12px;color:var(--primary-dark);margin-top:4px;word-break:break-all}
+.archivo-section{background:var(--gray-bg);border-radius:var(--radius);padding:.75rem;margin-bottom:10px}
+.archivo-tabs{display:flex;gap:4px;margin-bottom:10px}
+.archivo-tab{padding:4px 12px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border-strong);background:var(--card-bg);color:var(--text-2);font-family:inherit;font-weight:500}
+.archivo-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* USUARIOS */
+.user-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.user-list-item:last-child{border-bottom:none}
+.user-list-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.user-list-info{flex:1;margin-left:10px}
+.user-list-name{font-size:13px;font-weight:600;color:var(--text)}
+.user-list-email{font-size:11px;color:var(--text-3)}
+.pass-input-wrap{position:relative}
+.pass-input-wrap input{padding-right:36px}
+.pass-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-3);background:none;border:none;padding:0;font-size:16px}
+@media(max-width:700px){
+  .sidebar{width:56px;min-width:56px}
+  .sidebar-logo img{width:36px;height:36px}
+  .sidebar-logo-text,.nav-section,.nav-item span,.user-badge{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .metrics{grid-template-columns:1fr 1fr}
+  .two-col,.machine-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="evolved3d.jpg" alt="Evolved3D"/>
+        <div class="login-title">Evolved3D</div>
+        <div class="login-sub">Sistema de gestión · Diseño e Impresión 3D</div>
+      </div>
+      <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="pass-input-wrap">
+          <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+          <button class="pass-toggle" onclick="togglePass('login-pass',this)" tabindex="-1"><i class="ti ti-eye"></i></button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px;font-size:14px;margin-top:4px" onclick="doLogin()"><i class="ti ti-login"></i> Ingresar</button>
+      <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--text-3)">Solo usuarios autorizados de Evolved3D</div>
+    </div>
+  </div>
+</div>
+
+<!-- WPP MODAL -->
+<div class="modal-overlay" id="wpp-modal">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-brand-whatsapp" style="color:var(--wpp);font-size:20px"></i> Enviar por WhatsApp</div>
+    <div class="wpp-preview"><div class="wpp-bubble" id="wpp-preview-text">...</div></div>
+    <div class="form-group"><label class="form-label">Número del cliente (sin + ni espacios)</label><input type="tel" id="wpp-number" placeholder="5492664123456"/></div>
+    <div class="form-group"><label class="form-label">Mensaje (editá antes de enviar)</label><textarea id="wpp-msg-edit" rows="5"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('wpp-modal')">Cancelar</button>
+      <button class="btn btn-wpp" onclick="sendWpp()"><i class="ti ti-brand-whatsapp"></i> Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEDIDO -->
+<div class="modal-overlay" id="modal-pedido">
+  <div class="modal">
+    <div class="modal-title" id="modal-pedido-title"><i class="ti ti-clipboard-list" style="color:var(--primary)"></i> Nuevo pedido</div>
+    <input type="hidden" id="pedido-edit-id"/>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Cliente *</label><input id="p-cliente" placeholder="Nombre o empresa"/></div>
+      <div class="form-group"><label class="form-label">Teléfono WhatsApp</label><input id="p-tel" placeholder="5492664123456"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Tipo *</label><select id="p-tipo"><option value="imp">Impresión 3D</option><option value="dis">Diseño 3D</option></select></div>
+      <div class="form-group"><label class="form-label">Total ($)</label><input id="p-total" type="number" placeholder="0"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Estado</label><select id="p-estado"><option>Presupuesto</option><option>Confirmado</option><option>En proceso</option><option>Imprimiendo</option><option>Listo</option><option>Entregado</option></select></div>
+      <div class="form-group"><label class="form-label">Máquina asignada</label><select id="p-maquina"><option value="">— Sin asignar —</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Fecha de entrega</label><input id="p-entrega" type="date"/></div>
+      <div class="form-group"><label class="form-label">Material a usar</label><input id="p-material" placeholder="ej: PLA Blanco"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea id="p-desc" placeholder="Detalle del trabajo, cantidad, medidas..."></textarea></div>
+    <div class="archivo-section">
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-file-3d" style="color:var(--primary)"></i> Archivo del modelo</div>
+      <div class="archivo-tabs">
+        <button class="archivo-tab active" onclick="switchArchivoTab('upload',this)"><i class="ti ti-upload" style="font-size:12px;vertical-align:-1px"></i> Subir archivo</button>
+        <button class="archivo-tab" onclick="switchArchivoTab('drive',this)"><i class="ti ti-brand-google-drive" style="font-size:12px;vertical-align:-1px"></i> Link de Drive</button>
+      </div>
+      <div id="archivo-upload">
+        <div class="file-upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+          <i class="ti ti-cloud-upload" style="font-size:28px;color:var(--primary);margin-bottom:6px;display:block"></i>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">Arrastrá o hacé clic para elegir</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:4px">STL · 3MF · OBJ · STEP · STP · F3D · GCODE</div>
+        </div>
+        <input type="file" id="file-input" accept=".stl,.3mf,.obj,.step,.stp,.f3d,.gcode,.amf" style="display:none" onchange="handleFileSelect(event)"/>
+        <div id="file-preview"></div>
+      </div>
+      <div id="archivo-drive" style="display:none">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Link de Google Drive o cualquier nube</label>
+          <input id="p-drive-link" placeholder="https://drive.google.com/file/d/..."/>
+        </div>
+        <div id="drive-link-preview"></div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas internas</label><textarea id="p-notas" placeholder="Config. de impresión, notas para el operador..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-pedido')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarPedido()"><i class="ti ti-check"></i> Guardar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal"><div class="modal-title"><i class="ti ti-clipboard-list" style="color:var(--primary)"></i> Detalle del pedido</div>
+    <div id="detalle-content"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal('modal-detalle')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-title" id="modal-cliente-title"><i class="ti ti-user" style="color:var(--primary)"></i> Cliente</div>
+    <input type="hidden" id="cliente-edit-id"/>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre / empresa *</label><input id="c-nombre" placeholder="Nombre o empresa"/></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input id="c-tel" placeholder="5492664123456"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Email</label><input id="c-email" type="email" placeholder="mail@ejemplo.com"/></div>
+      <div class="form-group"><label class="form-label">Tipo</label><select id="c-tipo"><option value="imp">Impresión</option><option value="dis">Diseño</option><option value="ambos">Ambos</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Notas</label><textarea id="c-notas" placeholder="Info adicional..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MAQUINA -->
+<div class="modal-overlay" id="modal-maquina">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-tool" style="color:var(--primary)"></i> Máquina</div>
+    <input type="hidden" id="maquina-edit-id"/>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Nombre *</label><input id="m-nombre" placeholder="ej: Ender 3 Pro #1"/></div>
+      <div class="form-group"><label class="form-label">Estado</label><select id="m-estado"><option>Disponible</option><option>Imprimiendo</option><option>Mantenimiento</option><option>Fuera de servicio</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Trabajo actual</label><input id="m-trabajo" placeholder="Nombre del trabajo"/></div>
+      <div class="form-group"><label class="form-label">% Avance</label><input id="m-pct" type="number" min="0" max="100" placeholder="0"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Último mantenimiento</label><input id="m-mant" type="date"/></div>
+      <div class="form-group"><label class="form-label">Notas</label><input id="m-notas" placeholder="Observaciones..."/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-maquina')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarMaquina()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MATERIAL -->
+<div class="modal-overlay" id="modal-material">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-package" style="color:var(--primary)"></i> Material</div>
+    <input type="hidden" id="material-edit-id"/>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Material *</label><select id="mat-tipo"><option>PLA</option><option>PETG</option><option>ABS</option><option>TPU</option><option>ASA</option><option>Resina</option><option>Otro</option></select></div>
+      <div class="form-group"><label class="form-label">Color *</label><input id="mat-color" placeholder="ej: Blanco"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Stock actual (kg/L)</label><input id="mat-stock" type="number" step="0.1" placeholder="0"/></div>
+      <div class="form-group"><label class="form-label">Stock mínimo</label><input id="mat-min" type="number" step="0.1" placeholder="0.5"/></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Precio por kg ($)</label><input id="mat-precio" type="number" placeholder="0"/></div>
+      <div class="form-group"><label class="form-label">Proveedor</label><input id="mat-prov" placeholder="Nombre del proveedor"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Color del carretel (hex)</label><input id="mat-hex" placeholder="#3a8fc4" style="font-family:monospace"/></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-material')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarMaterial()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<div class="modal-overlay" id="modal-pass">
+  <div class="modal" style="width:400px">
+    <div class="modal-title"><i class="ti ti-lock" style="color:var(--primary)"></i> Cambiar contraseña</div>
+    <input type="hidden" id="pass-edit-email"/>
+    <div class="form-group">
+      <label class="form-label">Nueva contraseña</label>
+      <div class="pass-input-wrap">
+        <input type="password" id="pass-new" placeholder="Mínimo 6 caracteres"/>
+        <button class="pass-toggle" onclick="togglePass('pass-new',this)" tabindex="-1"><i class="ti ti-eye"></i></button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirmar contraseña</label>
+      <div class="pass-input-wrap">
+        <input type="password" id="pass-confirm" placeholder="Repetí la contraseña"/>
+        <button class="pass-toggle" onclick="togglePass('pass-confirm',this)" tabindex="-1"><i class="ti ti-eye"></i></button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-pass')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarPass()"><i class="ti ti-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="width:360px">
+    <div class="modal-title"><i class="ti ti-alert-triangle" style="color:var(--red)"></i> Confirmar eliminación</div>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:1rem">¿Seguro que querés eliminar este registro? No se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="main-app">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="evolved3d.jpg" alt="Evolved3D"/>
+    <div class="sidebar-logo-text"><div class="title">Evolved3D</div><div class="sub">Diseño e Impresión 3D</div></div>
+  </div>
+  <div class="user-badge" id="user-badge">
+    <div class="user-badge-info">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div><div class="user-name" id="user-name-display">—</div><div class="user-role" id="user-role-display">—</div></div>
+    </div>
+    <button class="btn btn-sm" onclick="doLogout()" title="Cerrar sesión" style="padding:3px 6px"><i class="ti ti-logout" style="font-size:14px;color:var(--red)"></i></button>
+  </div>
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span>Inicio</span></div>
+  <div class="nav-section">Negocio</div>
+  <div class="nav-item" onclick="nav('pedidos',this)"><i class="ti ti-clipboard-list"></i><span>Pedidos</span></div>
+  <div class="nav-item" onclick="nav('presupuestos',this)"><i class="ti ti-file-invoice"></i><span>Presupuestos</span></div>
+  <div class="nav-item" onclick="nav('cobros',this)"><i class="ti ti-cash"></i><span>Cobros</span></div>
+  <div class="nav-section">Operaciones</div>
+  <div class="nav-item" onclick="nav('stock',this)"><i class="ti ti-package"></i><span>Stock</span></div>
+  <div class="nav-item" onclick="nav('trabajos',this)"><i class="ti ti-checklist"></i><span>Trabajos</span></div>
+  <div class="nav-item" onclick="nav('maquinas',this)"><i class="ti ti-tool"></i><span>Máquinas</span></div>
+  <div class="nav-section">Más</div>
+  <div class="nav-item" onclick="nav('clientes',this)"><i class="ti ti-users"></i><span>Clientes</span></div>
+  <div class="nav-item" onclick="nav('resumen',this)"><i class="ti ti-chart-bar"></i><span>Resumen</span></div>
+  <div class="nav-item" onclick="nav('usuarios',this)"><i class="ti ti-shield-lock"></i><span>Usuarios</span></div>
+</nav>
+
+<main class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div><div class="page-title">Panel principal</div><div style="font-size:13px;color:var(--text-3);margin-top:2px" id="fecha-hoy"></div></div>
+    <img src="evolved3d.jpg" style="height:44px;border-radius:50%;border:2px solid var(--primary)" alt="logo"/>
+  </div>
+  <div id="dash-alerts"></div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Pedidos activos</div><div class="metric-value" id="m-pedidos">0</div><div class="metric-sub" id="m-pedidos-sub">—</div></div>
+    <div class="metric" style="border-top-color:var(--accent)"><div class="metric-label">Facturado este mes</div><div class="metric-value" id="m-facturado">$0</div><div class="metric-sub" id="m-fact-sub">—</div></div>
+    <div class="metric"><div class="metric-label">Máquinas activas</div><div class="metric-value" id="m-maquinas">0</div><div class="metric-sub" id="m-maq-sub">—</div></div>
+    <div class="metric" style="border-top-color:#D85A30"><div class="metric-label">Saldo a cobrar</div><div class="metric-value" id="m-cobrar" style="color:var(--red)">$0</div><div class="metric-sub" id="m-cobrar-sub">—</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card"><div class="card-title"><i class="ti ti-clipboard-list" style="color:var(--primary)"></i> Últimos pedidos</div><div id="dash-pedidos-list"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-clipboard"></i><p>Sin pedidos todavía.</p></div></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-bell" style="color:var(--accent)"></i> Trabajos pendientes</div><div id="dash-trabajos-list"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-checklist"></i><p>Sin trabajos activos.</p></div></div></div>
+  </div>
+</div>
+
+<!-- PEDIDOS -->
+<div class="page" id="page-pedidos">
+  <div class="page-header"><div class="page-title">Pedidos</div><button class="btn btn-primary" onclick="abrirModalPedido()"><i class="ti ti-plus"></i> Nuevo pedido</button></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="filtrarPedidos('todos',this)">Todos</button>
+    <button class="tab" onclick="filtrarPedidos('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión</button>
+    <button class="tab" onclick="filtrarPedidos('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño</button>
+  </div>
+  <div class="card" id="pedidos-container"><div class="empty-state"><i class="ti ti-clipboard"></i><p>No hay pedidos cargados.</p><button class="btn btn-primary" onclick="abrirModalPedido()"><i class="ti ti-plus"></i> Primer pedido</button></div></div>
+</div>
+
+<!-- PRESUPUESTOS -->
+<div class="page" id="page-presupuestos">
+  <div class="page-header"><div class="page-title">Presupuestos</div></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="switchPresup('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión 3D</button>
+    <button class="tab" onclick="switchPresup('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño 3D</button>
+  </div>
+  <div class="presup-section active" id="presup-imp">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-printer" style="color:var(--primary)"></i> Datos — impresión</div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Cliente</label><input id="pi-cliente" placeholder="Nombre o empresa"/></div><div class="form-group"><label class="form-label">Fecha</label><input type="date" id="pi-fecha"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Material</label><select id="pi-mat"><option>PLA</option><option>PETG</option><option>ABS</option><option>TPU</option><option>Resina</option></select></div><div class="form-group"><label class="form-label">Peso estimado (g)</label><input type="number" id="peso" placeholder="0" oninput="calcImp()"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Tiempo impresión (hs)</label><input type="number" id="ths" placeholder="0" oninput="calcImp()"/></div><div class="form-group"><label class="form-label">Cantidad piezas</label><input type="number" id="cant" placeholder="1" oninput="calcImp()"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Costo material ($/g)</label><input type="number" id="cmat" value="120" oninput="calcImp()"/></div><div class="form-group"><label class="form-label">Costo máquina ($/h)</label><input type="number" id="cmaq" value="800" oninput="calcImp()"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Mano de obra ($)</label><input type="number" id="mob" value="5000" oninput="calcImp()"/></div><div class="form-group"><label class="form-label">Margen (%)</label><input type="number" id="margen" value="30" oninput="calcImp()"/></div></div>
+        <div class="form-group"><label class="form-label">Descripción</label><textarea id="pi-desc" placeholder="Detalles..."></textarea></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-calculator" style="color:var(--primary)"></i> Desglose</div>
+          <table><tr><th>Concepto</th><th style="text-align:right">Subtotal</th></tr>
+            <tr><td>Material</td><td style="text-align:right" id="r-mat">$0</td></tr>
+            <tr><td>Tiempo máquina</td><td style="text-align:right" id="r-maq">$0</td></tr>
+            <tr><td>Mano de obra</td><td style="text-align:right" id="r-mob">$0</td></tr>
+            <tr><td>Subtotal</td><td style="text-align:right" id="r-sub">$0</td></tr>
+            <tr><td id="r-mlabel">Margen (30%)</td><td style="text-align:right" id="r-mval">$0</td></tr>
+          </table>
+          <div class="total-row"><span style="font-size:14px;font-weight:700">Total estimado</span><span style="font-size:26px;font-weight:800;color:var(--primary)" id="r-total">$0</span></div>
+        </div>
+        <div class="card" id="presup-imp-doc" style="display:none">
+          <div class="card-title"><i class="ti ti-file-text" style="color:var(--accent)"></i> Listo para compartir</div>
+          <div class="presup-doc"><div class="presup-doc-inner">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)">
+              <div><div style="font-size:15px;font-weight:800;color:var(--primary)">Evolved3D</div><div style="font-size:11px;color:var(--text-3)">Diseño e Impresión 3D</div></div>
+              <div style="text-align:right"><div style="font-size:12px;font-weight:700" id="doc-num">#P-001</div><div style="font-size:11px;color:var(--text-3)" id="doc-fecha"></div></div>
+            </div>
+            <table style="margin-bottom:10px">
+              <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Cliente</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="doc-cliente">—</td></tr>
+              <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Trabajo</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="doc-trabajo">—</td></tr>
+              <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Material</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="doc-mat">—</td></tr>
+              <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Cotizado por</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="doc-cotizador">—</td></tr>
+              <tr><td style="color:var(--text-2);font-size:12px;padding:3px 0;border:none">Válido hasta</td><td style="font-weight:600;font-size:12px;text-align:right;border:none" id="doc-validez">—</td></tr>
+            </table>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:2px solid var(--border)"><span style="font-weight:700">Total</span><span style="font-size:20px;font-weight:800;color:var(--primary)" id="doc-total">$0</span></div>
+          </div></div>
+          <div class="share-actions">
+            <button class="btn btn-wpp" onclick="compartirPresupWpp()"><i class="ti ti-brand-whatsapp"></i> WhatsApp</button>
+            <button class="btn" onclick="copiarPresup()"><i class="ti ti-copy"></i> Copiar</button>
+            <button class="btn" onclick="window.print()"><i class="ti ti-printer"></i> Imprimir</button>
+          </div>
+        </div>
+        <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="generarPresupImp()"><i class="ti ti-file-check"></i> Generar presupuesto</button>
+      </div>
+    </div>
+  </div>
+  <div class="presup-section" id="presup-dis">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-vector" style="color:var(--accent)"></i> Datos — diseño 3D</div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Cliente</label><input id="pd-cliente" placeholder="Nombre o empresa"/></div><div class="form-group"><label class="form-label">Fecha</label><input type="date" id="pd-fecha"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Tipo de archivo</label><select><option>STL</option><option>STEP</option><option>STL + STEP</option><option>OBJ</option><option>Render 3D</option></select></div><div class="form-group"><label class="form-label">Destino</label><select><option>Para imprimir aquí</option><option>Para otro local</option><option>Uso propio</option></select></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Horas estimadas</label><input type="number" id="dhs" placeholder="0" oninput="calcDis()"/></div><div class="form-group"><label class="form-label">Precio por hora ($)</label><input type="number" id="dph" value="2500" oninput="calcDis()"/></div></div>
+        <div class="form-grid"><div class="form-group"><label class="form-label">Complejidad</label><select id="dcomp" onchange="calcDis()"><option value="1">Baja</option><option value="1.2">Media +20%</option><option value="1.5">Alta +50%</option></select></div><div class="form-group"><label class="form-label">Revisiones</label><select><option>1 revisión</option><option>2 revisiones</option><option>Ilimitadas</option></select></div></div>
+        <div class="form-group"><label class="form-label">Descripción</label><textarea id="pd-desc" placeholder="Qué modelar, medidas, referencias..."></textarea></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-chart-bar" style="color:var(--accent)"></i> Precios de referencia AR</div>
+        <div class="ref-box"><div class="ref-title"><i class="ti ti-cube" style="font-size:13px"></i> Piezas simples</div><div class="ref-row"><span style="color:var(--text-2)">Bisagra, soporte</span><span style="font-weight:600">$8.000–$18.000</span></div><div class="ref-row"><span style="color:var(--text-2)">Adaptador / accesorio</span><span style="font-weight:600">$12.000–$25.000</span></div></div>
+        <div class="ref-box"><div class="ref-title"><i class="ti ti-settings" style="font-size:13px"></i> Piezas medias</div><div class="ref-row"><span style="color:var(--text-2)">Engranaje o mecanismo</span><span style="font-weight:600">$20.000–$45.000</span></div><div class="ref-row"><span style="color:var(--text-2)">Carcasa con detalles</span><span style="font-weight:600">$25.000–$55.000</span></div></div>
+        <div class="ref-box"><div class="ref-title"><i class="ti ti-crown" style="font-size:13px"></i> Trabajos complejos</div><div class="ref-row"><span style="color:var(--text-2)">Ensamble multi-pieza</span><span style="font-weight:600">$50.000–$120.000</span></div><div class="ref-row"><span style="color:var(--text-2)">Industrial / ingeniería</span><span style="font-weight:600">$60.000–$150.000+</span></div></div>
+        <div class="tip-box"><i class="ti ti-info-circle" style="flex-shrink:0"></i> Hora sugerida: $2.000–$3.500/h. Para otros locales: descuento 15–20%.</div>
+        <div class="total-row" style="margin-top:12px"><span style="font-size:14px;font-weight:700">Tu cotización</span><span style="font-size:26px;font-weight:800;color:var(--accent)" id="d-total">$0</span></div>
+        <button class="btn btn-wpp" style="width:100%;justify-content:center;margin-top:12px" onclick="compartirDisWpp()"><i class="ti ti-brand-whatsapp"></i> Enviar por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COBROS -->
+<div class="page" id="page-cobros">
+  <div class="page-header"><div class="page-title">Cobros</div></div>
+  <div class="metrics" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value" id="cobros-cobrado">$0</div></div>
+    <div class="metric" style="border-top-color:#D85A30"><div class="metric-label">Pendiente</div><div class="metric-value" style="color:var(--red)" id="cobros-pendiente">$0</div></div>
+    <div class="metric" style="border-top-color:var(--accent)"><div class="metric-label">Total facturado</div><div class="metric-value" id="cobros-total">$0</div></div>
+  </div>
+  <div class="card" id="cobros-container"><div class="empty-state"><i class="ti ti-cash"></i><p>Cargá pedidos con monto para ver cobros.</p></div></div>
+</div>
+
+<!-- STOCK -->
+<div class="page" id="page-stock">
+  <div class="page-header"><div class="page-title">Stock de materiales</div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-icon" id="btn-cards" onclick="setView('cards')"><i class="ti ti-layout-grid"></i></button>
+      <button class="btn btn-icon" id="btn-list" onclick="setView('list')"><i class="ti ti-list"></i></button>
+      <button class="btn btn-primary" onclick="abrirModalMaterial()"><i class="ti ti-plus"></i> Agregar</button>
+    </div>
+  </div>
+  <div id="view-cards"><div id="spool-grid" class="spool-grid"><div class="empty-state" style="grid-column:1/-1;padding:2rem"><i class="ti ti-package"></i><p>Sin materiales.</p><button class="btn btn-primary" onclick="abrirModalMaterial()"><i class="ti ti-plus"></i> Agregar</button></div></div></div>
+  <div id="view-list" style="display:none"><div class="card"><div id="stock-list-container"><div class="empty-state"><i class="ti ti-package"></i><p>Sin materiales.</p></div></div></div></div>
+</div>
+
+<!-- TRABAJOS -->
+<div class="page" id="page-trabajos">
+  <div class="page-header"><div class="page-title">Trabajos</div></div>
+  <div class="tab-row">
+    <button class="tab active" onclick="filtrarTrabajos('todos',this)">Todos</button>
+    <button class="tab" onclick="filtrarTrabajos('imp',this)"><i class="ti ti-printer" style="font-size:12px;vertical-align:-1px"></i> Impresión</button>
+    <button class="tab" onclick="filtrarTrabajos('dis',this)"><i class="ti ti-vector" style="font-size:12px;vertical-align:-1px"></i> Diseño</button>
+  </div>
+  <div class="card" id="trabajos-container"><div class="empty-state"><i class="ti ti-checklist"></i><p>Los trabajos se generan desde los pedidos activos.</p></div></div>
+</div>
+
+<!-- MAQUINAS -->
+<div class="page" id="page-maquinas">
+  <div class="page-header"><div class="page-title">Máquinas</div><button class="btn btn-primary" onclick="abrirModalMaquina()"><i class="ti ti-plus"></i> Agregar</button></div>
+  <div class="machine-grid" id="maquinas-grid"><div class="empty-state" style="grid-column:1/-1"><i class="ti ti-tool"></i><p>Sin máquinas.</p><button class="btn btn-primary" onclick="abrirModalMaquina()"><i class="ti ti-plus"></i> Agregar</button></div></div>
+</div>
+
+<!-- CLIENTES -->
+<div class="page" id="page-clientes">
+  <div class="page-header"><div class="page-title">Clientes</div><button class="btn btn-primary" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Agregar</button></div>
+  <div class="card" id="clientes-container"><div class="empty-state"><i class="ti ti-users"></i><p>Sin clientes.</p><button class="btn btn-primary" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Agregar</button></div></div>
+</div>
+
+<!-- RESUMEN -->
+<div class="page" id="page-resumen">
+  <div class="page-header"><div class="page-title">Resumen del mes</div></div>
+  <div class="metrics"><div class="metric"><div class="metric-label">Total facturado</div><div class="metric-value" id="res-total">$0</div></div><div class="metric" style="border-top-color:var(--primary)"><div class="metric-label">Impresión</div><div class="metric-value" id="res-imp">$0</div></div><div class="metric" style="border-top-color:var(--accent)"><div class="metric-label">Diseño</div><div class="metric-value" id="res-dis">$0</div></div><div class="metric"><div class="metric-label">Completados</div><div class="metric-value" id="res-completados">0</div></div></div>
+  <div class="two-col">
+    <div class="card"><div class="card-title"><i class="ti ti-chart-bar" style="color:var(--primary)"></i> Por servicio</div><div id="res-chart"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-chart-bar"></i><p>Sin datos.</p></div></div></div>
+    <div class="card"><div class="card-title"><i class="ti ti-users" style="color:var(--accent)"></i> Clientes top</div><div id="res-clientes-chart"><div class="empty-state" style="padding:1.5rem"><i class="ti ti-users"></i><p>Sin datos.</p></div></div></div>
+  </div>
+</div>
+
+<!-- USUARIOS -->
+<div class="page" id="page-usuarios">
+  <div class="page-header"><div class="page-title">Gestión de usuarios</div></div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-shield-lock" style="color:var(--primary)"></i> Usuarios autorizados</div>
+    <div id="usuarios-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-lock" style="color:var(--primary)"></i> Cambiar mi contraseña</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:12px">Recomendamos cambiar la contraseña inicial por una propia y segura.</div>
+    <button class="btn btn-primary" onclick="abrirCambiarPass()"><i class="ti ti-lock"></i> Cambiar mi contraseña</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ===== USUARIOS =====
+var USERS = JSON.parse(localStorage.getItem('e3d_users') || 'null');
+if(!USERS){
+  USERS = [
+    {email:'ruppeltimothy5@gmail.com', name:'Timothy', pass:'Amorcito2020', role:'Admin'},
+    {email:'shirleygalean@gmail.com',  name:'Shirley',  pass:'Amorcito2020', role:'Admin'},
+    {email:'evolvedtresd@gmail.com',   name:'Evolved3D',pass:'Amorcito2020', role:'Admin'}
+  ];
+  localStorage.setItem('e3d_users', JSON.stringify(USERS));
+}
+var currentUser = JSON.parse(sessionStorage.getItem('e3d_session') || 'null');
+
+function doLogin(){
+  var email = document.getElementById('login-email').value.trim().toLowerCase();
+  var pass  = document.getElementById('login-pass').value;
+  var err   = document.getElementById('login-error');
+  var u = USERS.find(function(x){return x.email.toLowerCase()===email && x.pass===pass});
+  if(!u){err.classList.add('show');return}
+  err.classList.remove('show');
+  currentUser = u;
+  sessionStorage.setItem('e3d_session', JSON.stringify(u));
+  showApp();
+}
+
+function doLogout(){
+  sessionStorage.removeItem('e3d_session');
+  currentUser = null;
+  document.getElementById('main-app').classList.remove('visible');
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+}
+
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-app').classList.add('visible');
+  document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+  document.getElementById('user-name-display').textContent = currentUser.name;
+  document.getElementById('user-role-display').textContent = currentUser.role;
+  renderAll();
+}
+
+function togglePass(id,btn){
+  var inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.innerHTML='<i class="ti ti-eye-off"></i>'}
+  else{inp.type='password';btn.innerHTML='<i class="ti ti-eye"></i>'}
+}
+
+function abrirCambiarPass(){
+  if(!currentUser)return;
+  document.getElementById('pass-edit-email').value=currentUser.email;
+  document.getElementById('pass-new').value='';
+  document.getElementById('pass-confirm').value='';
+  openModal('modal-pass');
+}
+
+function guardarPass(){
+  var np=document.getElementById('pass-new').value;
+  var nc=document.getElementById('pass-confirm').value;
+  if(np.length<6){alert('La contraseña debe tener al menos 6 caracteres');return}
+  if(np!==nc){alert('Las contraseñas no coinciden');return}
+  var email=document.getElementById('pass-edit-email').value;
+  USERS=USERS.map(function(u){return u.email===email?Object.assign({},u,{pass:np}):u});
+  localStorage.setItem('e3d_users',JSON.stringify(USERS));
+  if(currentUser.email===email){currentUser=Object.assign({},currentUser,{pass:np});sessionStorage.setItem('e3d_session',JSON.stringify(currentUser))}
+  closeModal('modal-pass');
+  alert('Contraseña actualizada correctamente');
+}
+
+function abrirCambiarPassOtro(email){
+  document.getElementById('pass-edit-email').value=email;
+  document.getElementById('pass-new').value='';
+  document.getElementById('pass-confirm').value='';
+  openModal('modal-pass');
+}
+
+function renderUsuarios(){
+  var html='';
+  USERS.forEach(function(u){
+    var ini=u.name.charAt(0).toUpperCase();
+    var esSelf=currentUser&&u.email===currentUser.email;
+    html+='<div class="user-list-item">';
+    html+='<div class="user-list-avatar">'+ini+'</div>';
+    html+='<div class="user-list-info"><div class="user-list-name">'+u.name+(esSelf?' <span style="font-size:10px;background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:10px;font-weight:600">Yo</span>':' ')+'</div><div class="user-list-email">'+u.email+'</div></div>';
+    html+='<div style="display:flex;align-items:center;gap:8px"><span class="badge b-info">'+u.role+'</span><button class="btn btn-sm" onclick="abrirCambiarPassOtro(''+u.email+'')"><i class="ti ti-lock"></i> Cambiar clave</button></div>';
+    html+='</div>';
+  });
+  document.getElementById('usuarios-list').innerHTML=html;
+}
+
+// ===== DB =====
+var db={
+  pedidos:JSON.parse(localStorage.getItem('e3d_pedidos')||'[]'),
+  clientes:JSON.parse(localStorage.getItem('e3d_clientes')||'[]'),
+  maquinas:JSON.parse(localStorage.getItem('e3d_maquinas')||'[]'),
+  materiales:JSON.parse(localStorage.getItem('e3d_materiales')||'[]'),
+  nextId:parseInt(localStorage.getItem('e3d_nextId')||'1')
+};
+if(!db.maquinas.length){
+  db.maquinas=[
+    {id:1,nombre:'Creality Ender 3 Pro #1',estado:'Disponible',trabajo:'',pct:0,mant:'',notas:''},
+    {id:2,nombre:'Creality Ender 3 Pro #2',estado:'Disponible',trabajo:'',pct:0,mant:'',notas:''},
+    {id:3,nombre:'Anycubic Kobra 3 + ACE Pro',estado:'Disponible',trabajo:'',pct:0,mant:'',notas:'Multi-material'}
+  ];
+  db.nextId=10;
+  localStorage.setItem('e3d_maquinas',JSON.stringify(db.maquinas));
+  localStorage.setItem('e3d_nextId',db.nextId);
+}
+
+function save(){
+  localStorage.setItem('e3d_pedidos',JSON.stringify(db.pedidos));
+  localStorage.setItem('e3d_clientes',JSON.stringify(db.clientes));
+  localStorage.setItem('e3d_maquinas',JSON.stringify(db.maquinas));
+  localStorage.setItem('e3d_materiales',JSON.stringify(db.materiales));
+  localStorage.setItem('e3d_nextId',db.nextId);
+  renderAll();
+}
+function newId(){return db.nextId++}
+function fmt(n){return '$'+Math.round(n||0).toLocaleString('es-AR')}
+function fmtF(d){if(!d)return '—';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function currentUserName(){return currentUser?currentUser.name:'—'}
+
+// NAV
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  document.getElementById('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  renderAll();
+}
+function navTo(page){
+  var items=document.querySelectorAll('.nav-item');
+  var map={dashboard:0,pedidos:4,presupuestos:5,cobros:6,stock:8,trabajos:9,maquinas:10,clientes:12,resumen:13,usuarios:14};
+  nav(page,items[map[page]]);
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function openModal(id){document.getElementById(id).classList.add('open')}
+document.querySelectorAll('.modal-overlay').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open')})});
+
+// ARCHIVO
+var _fileData=null;
+function switchArchivoTab(tipo,el){
+  document.getElementById('archivo-upload').style.display=tipo==='upload'?'':'none';
+  document.getElementById('archivo-drive').style.display=tipo==='drive'?'':'none';
+  el.closest('.archivo-tabs').querySelectorAll('.archivo-tab').forEach(function(t){t.classList.remove('active')});
+  el.classList.add('active');
+}
+function handleFileSelect(e){
+  var file=e.target.files[0];if(!file)return;
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(!['stl','3mf','obj','step','stp','f3d','gcode','amf'].includes(ext)){alert('Formato no soportado');return}
+  if(file.size>52428800){alert('Archivo muy grande (+50MB). Usá link de Drive.');return}
+  var reader=new FileReader();
+  reader.onload=function(ev){_fileData={name:file.name,ext:ext,size:(file.size/1024).toFixed(0),data:ev.target.result};renderFilePreview()};
+  reader.readAsDataURL(file);
+}
+var dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('dragover')});
+dz.addEventListener('dragleave',function(){dz.classList.remove('dragover')});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('dragover');var file=e.dataTransfer.files[0];if(file){handleFileSelect({target:{files:[file]}})}});
+function renderFilePreview(){
+  if(!_fileData){document.getElementById('file-preview').innerHTML='';return}
+  var ec={stl:'ext-stl','3mf':'ext-3mf',obj:'ext-obj',step:'ext-step',stp:'ext-step',f3d:'ext-file',gcode:'ext-file',amf:'ext-file'};
+  document.getElementById('file-preview').innerHTML='<div class="file-chip"><span class="file-ext '+(ec[_fileData.ext]||'ext-file')+'">'+_fileData.ext.toUpperCase()+'</span>'+_fileData.name+' ('+_fileData.size+' KB)<button onclick="_fileData=null;renderFilePreview()" style="background:none;border:none;cursor:pointer;color:var(--red);margin-left:4px;font-size:14px">×</button></div>';
+}
+document.getElementById('p-drive-link').addEventListener('input',function(){
+  var link=this.value.trim();
+  document.getElementById('drive-link-preview').innerHTML=link?'<div class="drive-link-box"><i class="ti ti-brand-google-drive" style="color:#4285F4;font-size:16px;flex-shrink:0"></i>'+link+'</div>':'';
+});
+
+// PEDIDOS
+function actualizarSelectMaquinas(){
+  var sel=document.getElementById('p-maquina');
+  sel.innerHTML='<option value="">— Sin asignar —</option>';
+  db.maquinas.forEach(function(m){var opt=document.createElement('option');opt.value=m.id;opt.textContent=m.nombre+' ('+m.estado+')';sel.appendChild(opt)});
+}
+function abrirModalPedido(id){
+  _fileData=null;renderFilePreview();
+  document.getElementById('p-drive-link').value='';
+  document.getElementById('drive-link-preview').innerHTML='';
+  document.getElementById('pedido-edit-id').value=id||'';
+  document.getElementById('modal-pedido-title').innerHTML=id?'<i class="ti ti-edit" style="color:var(--primary)"></i> Editar pedido':'<i class="ti ti-clipboard-list" style="color:var(--primary)"></i> Nuevo pedido';
+  actualizarSelectMaquinas();
+  var today=new Date().toISOString().split('T')[0];
+  if(id){
+    var p=db.pedidos.find(function(x){return x.id==id});
+    if(p){
+      document.getElementById('p-cliente').value=p.cliente||'';
+      document.getElementById('p-tel').value=p.tel||'';
+      document.getElementById('p-tipo').value=p.tipo||'imp';
+      document.getElementById('p-total').value=p.total||'';
+      document.getElementById('p-estado').value=p.estado||'Confirmado';
+      document.getElementById('p-maquina').value=p.maquinaId||'';
+      document.getElementById('p-entrega').value=p.entrega||today;
+      document.getElementById('p-material').value=p.material||'';
+      document.getElementById('p-desc').value=p.desc||'';
+      document.getElementById('p-notas').value=p.notas||'';
+      if(p.driveLink){switchArchivoTab('drive',document.querySelector('.archivo-tab:last-child'));document.getElementById('p-drive-link').value=p.driveLink}
+      else if(p.archivo){_fileData=p.archivo;renderFilePreview()}
+    }
+  } else {
+    ['p-cliente','p-tel','p-total','p-material','p-desc','p-notas'].forEach(function(id){document.getElementById(id).value=''});
+    document.getElementById('p-tipo').value='imp';document.getElementById('p-estado').value='Confirmado';
+    document.getElementById('p-maquina').value='';document.getElementById('p-entrega').value=today;
+  }
+  openModal('modal-pedido');
+}
+function guardarPedido(){
+  var cliente=document.getElementById('p-cliente').value.trim();
+  if(!cliente){alert('El nombre del cliente es obligatorio');return}
+  var editId=document.getElementById('pedido-edit-id').value;
+  var maqId=document.getElementById('p-maquina').value;
+  var maq=maqId?db.maquinas.find(function(m){return m.id==maqId}):null;
+  var driveLink=document.getElementById('p-drive-link').value.trim();
+  var existente=editId?db.pedidos.find(function(x){return x.id==editId}):null;
+  var p={
+    id:editId?parseInt(editId):newId(),
+    cliente:cliente,tel:document.getElementById('p-tel').value.trim(),
+    tipo:document.getElementById('p-tipo').value,
+    total:parseFloat(document.getElementById('p-total').value)||0,
+    estado:document.getElementById('p-estado').value,
+    maquinaId:maqId?parseInt(maqId):'',maquinaNombre:maq?maq.nombre:'',
+    entrega:document.getElementById('p-entrega').value,
+    material:document.getElementById('p-material').value.trim(),
+    desc:document.getElementById('p-desc').value.trim(),
+    notas:document.getElementById('p-notas').value.trim(),
+    archivo:_fileData||null,driveLink:driveLink||'',
+    fecha:new Date().toISOString().split('T')[0],
+    creadoPor:existente?existente.creadoPor:currentUserName(),
+    ultimaModificacion:currentUserName(),
+    fechaModificacion:new Date().toISOString().split('T')[0]
+  };
+  if(editId){db.pedidos=db.pedidos.map(function(x){return x.id==editId?p:x})}
+  else{db.pedidos.push(p)}
+  closeModal('modal-pedido');save();
+}
+function verDetallePedido(id){
+  var p=db.pedidos.find(function(x){return x.id==id});if(!p)return;
+  var ec={stl:'ext-stl','3mf':'ext-3mf',obj:'ext-obj',step:'ext-step',stp:'ext-step',f3d:'ext-file',gcode:'ext-file',amf:'ext-file'};
+  var archivoHtml='<div style="color:var(--text-3);font-size:12px">Sin archivo adjunto</div>';
+  if(p.archivo){var cls=ec[p.archivo.ext]||'ext-file';archivoHtml='<div class="file-chip"><span class="file-ext '+cls+'">'+p.archivo.ext.toUpperCase()+'</span>'+p.archivo.name+' ('+p.archivo.size+' KB)<a href="'+p.archivo.data+'" download="'+p.archivo.name+'" style="margin-left:6px;color:var(--primary)"><i class="ti ti-download"></i></a></div>'}
+  else if(p.driveLink){archivoHtml='<div class="drive-link-box"><i class="ti ti-brand-google-drive" style="color:#4285F4;font-size:16px;flex-shrink:0"></i><a href="'+p.driveLink+'" target="_blank" style="color:var(--primary);word-break:break-all">'+p.driveLink+'</a></div>'}
+  document.getElementById('detalle-content').innerHTML=
+    '<table style="margin-bottom:12px">'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.03em">Cliente</td><td style="font-weight:600;border:none;font-size:13px">'+p.cliente+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Tipo</td><td style="border:none;font-size:13px">'+(p.tipo==='imp'?'Impresión 3D':'Diseño 3D')+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Descripción</td><td style="border:none;font-size:13px">'+(p.desc||'—')+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Material</td><td style="border:none;font-size:13px">'+(p.material||'—')+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Máquina</td><td style="border:none;font-size:13px">'+(p.maquinaNombre||'—')+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Total</td><td style="font-weight:700;color:var(--primary);border:none;font-size:14px">'+fmt(p.total)+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Entrega</td><td style="border:none;font-size:13px">'+fmtF(p.entrega)+'</td></tr>'+
+    '<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase;color:var(--primary)">Creado por</td><td style="border:none;font-size:13px;color:var(--primary);font-weight:600">'+(p.creadoPor||'—')+'</td></tr>'+
+    (p.ultimaModificacion&&p.ultimaModificacion!==p.creadoPor?'<tr><td style="color:var(--text-2);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Últ. modificación</td><td style="border:none;font-size:13px">'+p.ultimaModificacion+' · '+fmtF(p.fechaModificacion)+'</td></tr>':'')+
+    (p.notas?'<tr><td style="color:var(--amber);padding:5px 12px 5px 0;border:none;font-size:12px;font-weight:600;text-transform:uppercase">Notas internas</td><td style="border:none;font-size:13px;color:var(--amber)">'+p.notas+'</td></tr>':'')+
+    '</table>'+
+    '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:5px"><i class="ti ti-file-3d" style="color:var(--primary)"></i> Archivo del modelo</div>'+
+    archivoHtml;
+  openModal('modal-detalle');
+}
+function eliminarItem(tipo,id){
+  document.getElementById('confirm-delete-btn').onclick=function(){
+    if(tipo==='pedido')db.pedidos=db.pedidos.filter(function(x){return x.id!=id});
+    if(tipo==='cliente')db.clientes=db.clientes.filter(function(x){return x.id!=id});
+    if(tipo==='maquina')db.maquinas=db.maquinas.filter(function(x){return x.id!=id});
+    if(tipo==='material')db.materiales=db.materiales.filter(function(x){return x.id!=id});
+    closeModal('modal-confirm');save();
+  };
+  openModal('modal-confirm');
+}
+var _pedidoFiltro='todos';
+function filtrarPedidos(f,el){_pedidoFiltro=f;renderPedidos(f);el.closest('.tab-row').querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active')}
+function renderPedidos(filtro){
+  var list=filtro&&filtro!=='todos'?db.pedidos.filter(function(p){return p.tipo===filtro}):db.pedidos;
+  var c=document.getElementById('pedidos-container');
+  if(!list.length){c.innerHTML='<div class="empty-state"><i class="ti ti-clipboard"></i><p>No hay pedidos.</p><button class="btn btn-primary" onclick="abrirModalPedido()"><i class="ti ti-plus"></i> Nuevo pedido</button></div>';return}
+  var sc={'Presupuesto':'b-purple','Confirmado':'b-info','En proceso':'b-warn','Imprimiendo':'b-info','Listo':'b-ok','Entregado':'b-ok'};
+  var html='<table><colgroup><col style="width:5%"><col style="width:14%"><col style="width:16%"><col style="width:11%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col style="width:22%"></colgroup><tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Tipo</th><th>Total</th><th>Estado</th><th>Responsable</th><th>Acciones</th></tr>';
+  list.slice().reverse().forEach(function(p){
+    var tipoB=p.tipo==='imp'?'<span class="type-imp"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':'<span class="type-dis"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>';
+    var bc=sc[p.estado]||'b-info';
+    var archIco='';
+    if(p.archivo){var ec={stl:'ext-stl','3mf':'ext-3mf',obj:'ext-obj',step:'ext-step',stp:'ext-step',f3d:'ext-file',gcode:'ext-file',amf:'ext-file'};archIco='<span class="file-ext '+(ec[p.archivo.ext]||'ext-file')+'" style="width:auto;padding:2px 5px;border-radius:4px;font-size:10px;margin-right:2px">'+p.archivo.ext.toUpperCase()+'</span>'}
+    else if(p.driveLink){archIco='<i class="ti ti-brand-google-drive" style="color:#4285F4;font-size:14px;margin-right:2px"></i>'}
+    var resp=p.creadoPor||'—';
+    html+='<tr><td>#'+p.id+'</td><td>'+p.cliente+'</td><td>'+archIco+(p.desc||'—')+'</td><td>'+tipoB+'</td><td>'+fmt(p.total)+'</td><td><span class="badge '+bc+'">'+p.estado+'</span></td><td><span class="badge b-gray" style="font-size:10px">'+resp+'</span></td><td><div class="action-btns">';
+    html+='<button class="btn btn-sm" onclick="verDetallePedido('+p.id+')" title="Ver detalle"><i class="ti ti-eye"></i></button>';
+    if(p.tel&&(p.estado==='Listo'||p.estado==='En proceso'))html+='<button class="btn btn-sm btn-wpp" onclick="openWppPedido('+p.id+')"><i class="ti ti-brand-whatsapp"></i></button>';
+    html+='<button class="btn btn-sm" onclick="abrirModalPedido('+p.id+')" title="Editar"><i class="ti ti-edit"></i></button>';
+    html+='<button class="btn btn-sm btn-danger" onclick="eliminarItem('pedido','+p.id+')" title="Eliminar"><i class="ti ti-trash"></i></button>';
+    html+='</div></td></tr>';
+  });
+  html+='</table>';c.innerHTML=html;
+}
+
+// CLIENTES
+function abrirModalCliente(id){
+  document.getElementById('cliente-edit-id').value=id||'';
+  document.getElementById('modal-cliente-title').innerHTML=id?'<i class="ti ti-edit" style="color:var(--primary)"></i> Editar cliente':'<i class="ti ti-user" style="color:var(--primary)"></i> Nuevo cliente';
+  if(id){var cl=db.clientes.find(function(x){return x.id==id});if(cl){document.getElementById('c-nombre').value=cl.nombre||'';document.getElementById('c-tel').value=cl.tel||'';document.getElementById('c-email').value=cl.email||'';document.getElementById('c-tipo').value=cl.tipo||'imp';document.getElementById('c-notas').value=cl.notas||''}}
+  else{['c-nombre','c-tel','c-email','c-notas'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('c-tipo').value='imp'}
+  openModal('modal-cliente');
+}
+function guardarCliente(){
+  var nombre=document.getElementById('c-nombre').value.trim();if(!nombre){alert('El nombre es obligatorio');return}
+  var editId=document.getElementById('cliente-edit-id').value;
+  var c={id:editId?parseInt(editId):newId(),nombre:nombre,tel:document.getElementById('c-tel').value.trim(),email:document.getElementById('c-email').value.trim(),tipo:document.getElementById('c-tipo').value,notas:document.getElementById('c-notas').value.trim()};
+  if(editId){db.clientes=db.clientes.map(function(x){return x.id==editId?c:x})}else{db.clientes.push(c)}
+  closeModal('modal-cliente');save();
+}
+function renderClientes(){
+  var c=document.getElementById('clientes-container');
+  if(!db.clientes.length){c.innerHTML='<div class="empty-state"><i class="ti ti-users"></i><p>Sin clientes.</p><button class="btn btn-primary" onclick="abrirModalCliente()"><i class="ti ti-plus"></i> Agregar</button></div>';return}
+  var html='<table><colgroup><col style="width:22%"><col style="width:18%"><col style="width:22%"><col style="width:12%"><col style="width:10%"><col style="width:16%"></colgroup><tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th>Tipo</th><th>Pedidos</th><th>Acciones</th></tr>';
+  db.clientes.forEach(function(cl){
+    var tc=cl.tipo==='imp'?'<span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':cl.tipo==='dis'?'<span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>':'<span class="badge b-accent">Ambos</span>';
+    var np=db.pedidos.filter(function(p){return p.cliente.toLowerCase()===cl.nombre.toLowerCase()}).length;
+    html+='<tr><td>'+cl.nombre+'</td><td>'+(cl.tel||'—')+'</td><td>'+(cl.email||'—')+'</td><td>'+tc+'</td><td>'+np+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalCliente('+cl.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('cliente','+cl.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+  });
+  html+='</table>';document.getElementById('clientes-container').innerHTML=html;
+}
+
+// MAQUINAS
+function abrirModalMaquina(id){
+  document.getElementById('maquina-edit-id').value=id||'';
+  var today=new Date().toISOString().split('T')[0];
+  if(id){var m=db.maquinas.find(function(x){return x.id==id});if(m){document.getElementById('m-nombre').value=m.nombre||'';document.getElementById('m-estado').value=m.estado||'Disponible';document.getElementById('m-trabajo').value=m.trabajo||'';document.getElementById('m-pct').value=m.pct||'0';document.getElementById('m-mant').value=m.mant||today;document.getElementById('m-notas').value=m.notas||''}}
+  else{document.getElementById('m-nombre').value='';document.getElementById('m-estado').value='Disponible';document.getElementById('m-trabajo').value='';document.getElementById('m-pct').value='0';document.getElementById('m-mant').value=today;document.getElementById('m-notas').value=''}
+  openModal('modal-maquina');
+}
+function guardarMaquina(){
+  var nombre=document.getElementById('m-nombre').value.trim();if(!nombre){alert('El nombre es obligatorio');return}
+  var editId=document.getElementById('maquina-edit-id').value;
+  var m={id:editId?parseInt(editId):newId(),nombre:nombre,estado:document.getElementById('m-estado').value,trabajo:document.getElementById('m-trabajo').value.trim(),pct:parseInt(document.getElementById('m-pct').value)||0,mant:document.getElementById('m-mant').value,notas:document.getElementById('m-notas').value.trim()};
+  if(editId){db.maquinas=db.maquinas.map(function(x){return x.id==editId?m:x})}else{db.maquinas.push(m)}
+  closeModal('modal-maquina');save();
+}
+function renderMaquinas(){
+  var g=document.getElementById('maquinas-grid');
+  if(!db.maquinas.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><i class="ti ti-tool"></i><p>Sin máquinas.</p><button class="btn btn-primary" onclick="abrirModalMaquina()"><i class="ti ti-plus"></i> Agregar</button></div>';return}
+  var sb={'Disponible':'b-info','Imprimiendo':'b-purple','Mantenimiento':'b-warn','Fuera de servicio':'b-low'};
+  var html='';
+  db.maquinas.forEach(function(m){
+    var bc=sb[m.estado]||'b-info';
+    var barColor=m.estado==='Mantenimiento'||m.estado==='Fuera de servicio'?'#D85A30':'var(--primary)';
+    html+='<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div class="mcard-name">'+m.nombre+'</div><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaquina('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('maquina','+m.id+')"><i class="ti ti-trash"></i></button></div></div>';
+    html+='<span class="badge '+bc+'" style="margin-bottom:8px;display:inline-flex">'+m.estado+'</span>';
+    html+='<div class="prog-bar"><div class="prog-fill" style="width:'+m.pct+'%;background:'+barColor+'"></div></div>';
+    html+='<div style="font-size:11px;color:var(--text-2)">'+m.pct+'%'+(m.trabajo?' · '+m.trabajo:'')+'</div>';
+    html+='<div class="minfo">'+(m.notas||'')+(m.mant?'<br>Último mant.: '+fmtF(m.mant):'')+' </div></div>';
+  });
+  g.innerHTML=html;
+}
+
+// MATERIALES
+function abrirModalMaterial(id){
+  document.getElementById('material-edit-id').value=id||'';
+  if(id){var m=db.materiales.find(function(x){return x.id==id});if(m){document.getElementById('mat-tipo').value=m.tipo||'PLA';document.getElementById('mat-color').value=m.color||'';document.getElementById('mat-stock').value=m.stock||'';document.getElementById('mat-min').value=m.min||'0.5';document.getElementById('mat-precio').value=m.precio||'';document.getElementById('mat-prov').value=m.prov||'';document.getElementById('mat-hex').value=m.hex||'#3a8fc4'}}
+  else{['mat-color','mat-stock','mat-precio','mat-prov'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('mat-tipo').value='PLA';document.getElementById('mat-min').value='0.5';document.getElementById('mat-hex').value='#3a8fc4'}
+  openModal('modal-material');
+}
+function guardarMaterial(){
+  var color=document.getElementById('mat-color').value.trim();if(!color){alert('El color es obligatorio');return}
+  var editId=document.getElementById('material-edit-id').value;
+  var m={id:editId?parseInt(editId):newId(),tipo:document.getElementById('mat-tipo').value,color:color,stock:parseFloat(document.getElementById('mat-stock').value)||0,min:parseFloat(document.getElementById('mat-min').value)||0.5,precio:parseFloat(document.getElementById('mat-precio').value)||0,prov:document.getElementById('mat-prov').value.trim(),hex:document.getElementById('mat-hex').value.trim()||'#3a8fc4'};
+  if(editId){db.materiales=db.materiales.map(function(x){return x.id==editId?m:x})}else{db.materiales.push(m)}
+  closeModal('modal-material');save();
+}
+function spoolSVG(hex,size){
+  size=size||70;var cx=size/2,cy=size/2,rc=size*0.42,rh=size*0.18,rhole=size*0.08;
+  var spokes='';for(var i=0;i<8;i++){var a=i*45*Math.PI/180;spokes+='<line x1="'+(cx+rhole*Math.cos(a)).toFixed(1)+'" y1="'+(cy+rhole*Math.sin(a)).toFixed(1)+'" x2="'+(cx+rh*0.9*Math.cos(a)).toFixed(1)+'" y2="'+(cy+rh*0.9*Math.sin(a)).toFixed(1)+'" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"/>';}
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+rc.toFixed(1)+'" fill="'+hex+'" stroke="rgba(0,0,0,0.15)" stroke-width="2"/>'+spokes+'<circle cx="'+cx+'" cy="'+cy+'" r="'+rh.toFixed(1)+'" fill="rgba(0,0,0,0.25)"/><circle cx="'+cx+'" cy="'+cy+'" r="'+rhole.toFixed(1)+'" fill="'+hex+'" stroke="rgba(0,0,0,0.15)" stroke-width="1"/></svg>';
+}
+function renderStock(){
+  var grid=document.getElementById('spool-grid'),listC=document.getElementById('stock-list-container');
+  if(!db.materiales.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1;padding:2rem"><i class="ti ti-package"></i><p>Sin materiales.</p><button class="btn btn-primary" onclick="abrirModalMaterial()"><i class="ti ti-plus"></i> Agregar</button></div>';listC.innerHTML='<div class="empty-state"><i class="ti ti-package"></i><p>Sin materiales.</p></div>';return}
+  var gHtml='';
+  db.materiales.forEach(function(m){
+    var isLow=m.stock<m.min,pct=Math.min(100,Math.round((m.stock/(m.min*3))*100));
+    gHtml+='<div class="spool-card'+(isLow?' low':'')+'">';
+    gHtml+='<div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:4px"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('material','+m.id+')"><i class="ti ti-trash"></i></button></div>';
+    gHtml+='<div class="spool-visual">'+spoolSVG(m.hex)+'</div>';
+    gHtml+='<div style="font-size:13px;font-weight:700;color:var(--text)">'+m.tipo+'</div>';
+    gHtml+='<div style="font-size:11px;color:var(--text-2);margin-bottom:8px">'+m.color+(m.prov?' · '+m.prov:'')+'</div>';
+    gHtml+=isLow?'<span class="badge b-low" style="margin-bottom:6px">Stock bajo</span>':'<span class="badge b-ok" style="margin-bottom:6px">OK</span>';
+    gHtml+='<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:'+(isLow?'#D85A30':'var(--primary)')+'"></div></div>';
+    gHtml+='<div style="font-size:11px;color:var(--text-2);display:flex;justify-content:space-between"><span>'+m.stock+' kg</span><span>mín '+m.min+'</span></div>';
+    gHtml+='<div style="font-size:12px;font-weight:700;color:var(--text);margin-top:6px">'+fmt(m.precio)+'/kg</div></div>';
+  });
+  grid.innerHTML=gHtml;
+  var lHtml='<table><colgroup><col style="width:5%"><col style="width:13%"><col style="width:12%"><col style="width:10%"><col style="width:8%"><col style="width:11%"><col style="width:12%"><col style="width:17%"><col style="width:12%"></colgroup><tr><th></th><th>Material</th><th>Color</th><th>Stock</th><th>Mín.</th><th>Estado</th><th>Precio</th><th>Proveedor</th><th></th></tr>';
+  db.materiales.forEach(function(m){var isLow=m.stock<m.min;lHtml+='<tr><td>'+spoolSVG(m.hex,20)+'</td><td>'+m.tipo+'</td><td>'+m.color+'</td><td>'+m.stock+' kg</td><td>'+m.min+'</td><td>'+(isLow?'<span class="badge b-low">Stock bajo</span>':'<span class="badge b-ok">OK</span>')+'</td><td>'+fmt(m.precio)+'</td><td>'+(m.prov||'—')+'</td><td><div class="action-btns"><button class="btn btn-sm" onclick="abrirModalMaterial('+m.id+')"><i class="ti ti-edit"></i></button><button class="btn btn-sm btn-danger" onclick="eliminarItem('material','+m.id+')"><i class="ti ti-trash"></i></button></div></td></tr>'});
+  lHtml+='</table>';listC.innerHTML=lHtml;
+}
+function setView(v){document.getElementById('view-cards').style.display=v==='cards'?'':'none';document.getElementById('view-list').style.display=v==='list'?'':'none';document.getElementById('btn-cards').style.background=v==='cards'?'var(--gray-bg)':'';document.getElementById('btn-list').style.background=v==='list'?'var(--gray-bg)':''}
+
+// TRABAJOS
+var _trabajoFiltro='todos';
+function filtrarTrabajos(f,el){_trabajoFiltro=f;renderTrabajos();el.closest('.tab-row').querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active')}
+function renderTrabajos(){
+  var list=db.pedidos.filter(function(p){return p.estado!=='Entregado'&&p.estado!=='Presupuesto'});
+  if(_trabajoFiltro!=='todos')list=list.filter(function(p){return p.tipo===_trabajoFiltro});
+  var c=document.getElementById('trabajos-container');
+  if(!list.length){c.innerHTML='<div class="empty-state"><i class="ti ti-checklist"></i><p>Sin trabajos activos.</p></div>';return}
+  var sc={'Confirmado':'b-info','En proceso':'b-warn','Imprimiendo':'b-purple','Listo':'b-ok'};
+  var html='<table><colgroup><col style="width:18%"><col style="width:13%"><col style="width:11%"><col style="width:14%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:12%"></colgroup><tr><th>Trabajo</th><th>Cliente</th><th>Tipo</th><th>Máquina</th><th>Entrega</th><th>Estado</th><th>Creado por</th><th>Acción</th></tr>';
+  list.forEach(function(p){
+    var tipoB=p.tipo==='imp'?'<span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':'<span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>';
+    var bc=sc[p.estado]||'b-info';
+    html+='<tr><td>'+(p.desc||'Pedido #'+p.id)+'</td><td>'+p.cliente+'</td><td>'+tipoB+'</td><td>'+(p.maquinaNombre||'—')+'</td><td>'+fmtF(p.entrega)+'</td><td><span class="badge '+bc+'">'+p.estado+'</span></td><td><span class="badge b-gray" style="font-size:10px">'+(p.creadoPor||'—')+'</span></td><td>';
+    html+='<button class="btn btn-sm" onclick="verDetallePedido('+p.id+')" title="Ver archivo"><i class="ti ti-file-3d" style="color:var(--primary)"></i></button>';
+    if(p.tel&&(p.estado==='Listo'||p.estado==='En proceso'))html+=' <button class="btn btn-sm btn-wpp" onclick="openWppPedido('+p.id+')"><i class="ti ti-brand-whatsapp"></i></button>';
+    html+='</td></tr>';
+  });
+  html+='</table>';c.innerHTML=html;
+}
+
+// COBROS
+function renderCobros(){
+  var pend=db.pedidos.filter(function(p){return p.total>0&&p.estado!=='Entregado'&&p.estado!=='Presupuesto'});
+  var cob=db.pedidos.filter(function(p){return p.estado==='Entregado'&&p.total>0});
+  document.getElementById('cobros-cobrado').textContent=fmt(cob.reduce(function(a,p){return a+p.total},0));
+  document.getElementById('cobros-pendiente').textContent=fmt(pend.reduce(function(a,p){return a+p.total},0));
+  document.getElementById('cobros-total').textContent=fmt([...pend,...cob].reduce(function(a,p){return a+p.total},0));
+  var c=document.getElementById('cobros-container');
+  if(!pend.length&&!cob.length){c.innerHTML='<div class="empty-state"><i class="ti ti-cash"></i><p>Cargá pedidos para ver cobros.</p></div>';return}
+  var html='';
+  if(pend.length){html+='<div class="card-title" style="margin-bottom:.5rem"><i class="ti ti-clock" style="color:var(--amber)"></i> Pendientes</div>';pend.forEach(function(p){html+='<div class="cobro-row"><div><div style="font-size:13px;font-weight:500">#'+p.id+' — '+p.cliente+' · '+(p.desc||'Pedido')+'</div><div style="font-size:11px;color:var(--text-2)">'+p.estado+' · '+fmtF(p.entrega)+(p.creadoPor?' · <span style="color:var(--primary)">'+p.creadoPor+'</span>':'')+'</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:700">'+fmt(p.total)+'</div><div style="font-size:11px;color:var(--red)">Pendiente</div></div>'+(p.tel?'<div style="margin-left:8px"><button class="btn btn-sm btn-wpp" onclick="openWppPedido('+p.id+')"><i class="ti ti-brand-whatsapp"></i></button></div>':'')+'</div>'})}
+  if(cob.length){html+='<div class="card-title" style="margin:.75rem 0 .5rem"><i class="ti ti-check" style="color:var(--green)"></i> Cobrados</div>';cob.forEach(function(p){html+='<div class="cobro-row"><div><div style="font-size:13px;font-weight:500">#'+p.id+' — '+p.cliente+'</div>'+(p.creadoPor?'<div style="font-size:11px;color:var(--primary)">'+p.creadoPor+'</div>':'')+'</div><div style="text-align:right"><div style="font-size:14px;font-weight:700">'+fmt(p.total)+'</div><div style="font-size:11px;color:var(--green)">Entregado</div></div></div>'})}
+  c.innerHTML=html;
+}
+
+// DASHBOARD
+function renderDashboard(){
+  var dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var hoy=new Date();
+  var el=document.getElementById('fecha-hoy');if(el)el.textContent=dias[hoy.getDay()]+', '+hoy.getDate()+' de '+meses[hoy.getMonth()]+' '+hoy.getFullYear();
+  var activos=db.pedidos.filter(function(p){return p.estado!=='Entregado'&&p.estado!=='Presupuesto'});
+  var mes=hoy.getMonth(),anio=hoy.getFullYear();
+  var factMes=db.pedidos.filter(function(p){var f=new Date(p.fecha);return f.getMonth()===mes&&f.getFullYear()===anio}).reduce(function(a,p){return a+p.total},0);
+  var maqAct=db.maquinas.filter(function(m){return m.estado==='Imprimiendo'}).length;
+  var cobrar=db.pedidos.filter(function(p){return p.total>0&&p.estado!=='Entregado'&&p.estado!=='Presupuesto'}).reduce(function(a,p){return a+p.total},0);
+  document.getElementById('m-pedidos').textContent=activos.length;
+  document.getElementById('m-pedidos-sub').textContent=activos.length?activos.filter(function(p){return p.tipo==='imp'}).length+' imp · '+activos.filter(function(p){return p.tipo==='dis'}).length+' dis':'Sin pedidos activos';
+  document.getElementById('m-facturado').textContent=fmt(factMes);
+  document.getElementById('m-maquinas').textContent=maqAct+'/'+db.maquinas.length;
+  document.getElementById('m-maq-sub').textContent=db.maquinas.length?db.maquinas.filter(function(m){return m.estado==='Mantenimiento'}).length+' en mantenimiento':'Sin máquinas';
+  document.getElementById('m-cobrar').textContent=fmt(cobrar);
+  document.getElementById('m-cobrar-sub').textContent=cobrar?'Saldo pendiente':'Todo al día';
+  var alerts='';
+  db.materiales.filter(function(m){return m.stock<m.min}).forEach(function(m){alerts+='<div class="alert alert-danger"><i class="ti ti-alert-circle"></i> <strong>Stock bajo:</strong> '+m.tipo+' '+m.color+'</div>'});
+  db.pedidos.filter(function(p){return p.estado==='Listo'}).forEach(function(p){alerts+='<div class="alert alert-ok"><i class="ti ti-check"></i> <strong>Listo:</strong> #'+p.id+' — '+p.cliente+(p.creadoPor?' · <strong>'+p.creadoPor+'</strong>':'')+'</div>'});
+  var hoyStr=hoy.toISOString().split('T')[0];
+  db.pedidos.filter(function(p){return p.entrega===hoyStr&&p.estado!=='Entregado'}).forEach(function(p){alerts+='<div class="alert alert-warn"><i class="ti ti-clock"></i> <strong>Entrega hoy:</strong> #'+p.id+' — '+p.cliente+'</div>'});
+  document.getElementById('dash-alerts').innerHTML=alerts;
+  var ultimos=db.pedidos.slice(-4).reverse();
+  var sc={'Presupuesto':'b-purple','Confirmado':'b-info','En proceso':'b-warn','Imprimiendo':'b-info','Listo':'b-ok','Entregado':'b-ok'};
+  if(ultimos.length){var html='<table><colgroup><col style="width:35%"><col style="width:25%"><col style="width:25%"><col style="width:15%"></colgroup><tr><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Por</th></tr>';ultimos.forEach(function(p){var bc=sc[p.estado]||'b-info';var tipoB=p.tipo==='imp'?'<span class="type-imp" style="font-size:10px"><i class="ti ti-printer" style="font-size:10px"></i>Imp.</span>':'<span class="type-dis" style="font-size:10px"><i class="ti ti-vector" style="font-size:10px"></i>Dis.</span>';html+='<tr><td>'+p.cliente+'</td><td>'+tipoB+'</td><td><span class="badge '+bc+'">'+p.estado+'</span></td><td style="font-size:11px;color:var(--primary)">'+(p.creadoPor||'—')+'</td></tr>'});html+='</table>';document.getElementById('dash-pedidos-list').innerHTML=html}
+  else{document.getElementById('dash-pedidos-list').innerHTML='<div class="empty-state" style="padding:1.5rem"><i class="ti ti-clipboard"></i><p>Sin pedidos todavía.</p></div>'}
+  var pendT=db.pedidos.filter(function(p){return p.estado!=='Entregado'&&p.estado!=='Presupuesto'});
+  if(pendT.length){var tHtml='<ul class="tl">';pendT.slice(0,4).forEach(function(p){var dc=p.estado==='Listo'?'done':p.estado==='En proceso'||p.estado==='Imprimiendo'?'run':'pend';var ic=p.estado==='Listo'?'ti-check':p.estado==='En proceso'||p.estado==='Imprimiendo'?'ti-player-play':'ti-clock';tHtml+='<li><div class="tl-dot '+dc+'"><i class="ti '+ic+'"></i></div><div><div class="tl-t">'+(p.desc||'Pedido #'+p.id)+'</div><div class="tl-s"><span class="type-'+p.tipo+'" style="font-size:10px">'+(p.tipo==='imp'?'Impresión':'Diseño')+'</span> · '+p.cliente+(p.maquinaNombre?' · '+p.maquinaNombre:'')+(p.creadoPor?' · <strong>'+p.creadoPor+'</strong>':'')+' </div></div></li>'});tHtml+='</ul>';document.getElementById('dash-trabajos-list').innerHTML=tHtml}
+  else{document.getElementById('dash-trabajos-list').innerHTML='<div class="empty-state" style="padding:1.5rem"><i class="ti ti-checklist"></i><p>Sin trabajos activos.</p></div>'}
+}
+
+// RESUMEN
+function renderResumen(){
+  var total=db.pedidos.reduce(function(a,p){return a+p.total},0);
+  var imp=db.pedidos.filter(function(p){return p.tipo==='imp'}).reduce(function(a,p){return a+p.total},0);
+  var dis=db.pedidos.filter(function(p){return p.tipo==='dis'}).reduce(function(a,p){return a+p.total},0);
+  var comp=db.pedidos.filter(function(p){return p.estado==='Entregado'}).length;
+  document.getElementById('res-total').textContent=fmt(total);document.getElementById('res-imp').textContent=fmt(imp);document.getElementById('res-dis').textContent=fmt(dis);document.getElementById('res-completados').textContent=comp;
+  var impPct=total?Math.round((imp/total)*100):0,disPct=total?Math.round((dis/total)*100):0;
+  document.getElementById('res-chart').innerHTML=total?'<div class="chart-row"><div class="chart-label">Impresión 3D</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:'+impPct+'%;background:var(--primary)"></div></div><div class="chart-val">'+fmt(imp)+'</div></div><div class="chart-row"><div class="chart-label">Diseño 3D</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:'+disPct+'%;background:var(--accent)"></div></div><div class="chart-val">'+fmt(dis)+'</div></div>':'<div class="empty-state" style="padding:1.5rem"><i class="ti ti-chart-bar"></i><p>Sin datos.</p></div>';
+  var cm={};db.pedidos.forEach(function(p){cm[p.cliente]=(cm[p.cliente]||0)+p.total});
+  var top=Object.entries(cm).sort(function(a,b){return b[1]-a[1]}).slice(0,5);var maxV=top.length?top[0][1]:1;
+  document.getElementById('res-clientes-chart').innerHTML=top.length?top.map(function(e){return '<div class="chart-row"><div class="chart-label">'+e[0]+'</div><div class="chart-bar-bg"><div class="chart-bar-fill" style="width:'+Math.round((e[1]/maxV)*100)+'%;background:var(--primary)"></div></div><div class="chart-val">'+fmt(e[1])+'</div></div>'}).join(''):'<div class="empty-state" style="padding:1.5rem"><i class="ti ti-users"></i><p>Sin datos.</p></div>';
+}
+
+// PRESUPUESTOS
+function switchPresup(tipo,el){document.querySelectorAll('.presup-section').forEach(function(s){s.classList.remove('active')});document.getElementById('presup-'+tipo).classList.add('active');el.closest('.tab-row').querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});el.classList.add('active')}
+function calcImp(){var peso=parseFloat(document.getElementById('peso').value)||0,ths=parseFloat(document.getElementById('ths').value)||0,cant=parseFloat(document.getElementById('cant').value)||1,cmat=parseFloat(document.getElementById('cmat').value)||0,cmaq=parseFloat(document.getElementById('cmaq').value)||0,mob=parseFloat(document.getElementById('mob').value)||0,margen=parseFloat(document.getElementById('margen').value)||0;var mat=peso*cmat*cant,maq=ths*cmaq*cant,sub=mat+maq+mob,mv=sub*(margen/100),total=sub+mv;document.getElementById('r-mat').textContent=fmt(mat);document.getElementById('r-maq').textContent=fmt(maq);document.getElementById('r-mob').textContent=fmt(mob);document.getElementById('r-sub').textContent=fmt(sub);document.getElementById('r-mlabel').textContent='Margen ('+Math.round(margen)+'%)';document.getElementById('r-mval').textContent=fmt(mv);document.getElementById('r-total').textContent=fmt(total)}
+function calcDis(){document.getElementById('d-total').textContent=fmt((parseFloat(document.getElementById('dhs').value)||0)*(parseFloat(document.getElementById('dph').value)||0)*(parseFloat(document.getElementById('dcomp').value)||1))}
+function generarPresupImp(){var cliente=document.getElementById('pi-cliente').value||'Sin nombre',desc=document.getElementById('pi-desc').value||'—',mat=document.getElementById('pi-mat').value,total=document.getElementById('r-total').textContent,fecha=new Date(),validez=new Date(fecha);validez.setDate(validez.getDate()+7);document.getElementById('doc-cliente').textContent=cliente;document.getElementById('doc-trabajo').textContent=desc;document.getElementById('doc-mat').textContent=mat;document.getElementById('doc-cotizador').textContent=currentUserName();document.getElementById('doc-total').textContent=total;document.getElementById('doc-fecha').textContent=fecha.toLocaleDateString('es-AR');document.getElementById('doc-validez').textContent=validez.toLocaleDateString('es-AR');document.getElementById('doc-num').textContent='#P-'+String(Math.floor(Math.random()*900)+100);document.getElementById('presup-imp-doc').style.display='block';document.getElementById('presup-imp-doc').scrollIntoView({behavior:'smooth'})}
+function compartirPresupWpp(){var msg='Hola '+document.getElementById('doc-cliente').textContent+'! Te enviamos el presupuesto de *Evolved3D*:\n\n📋 '+document.getElementById('doc-num').textContent+'\n📦 '+document.getElementById('doc-trabajo').textContent+'\n💰 Total: *'+document.getElementById('doc-total').textContent+'*\n📅 Válido hasta: '+document.getElementById('doc-validez').textContent+'\n\n¿Alguna consulta? ¡Estamos disponibles!';abrirWppModal(msg,'')}
+function compartirDisWpp(){var msg='Hola '+(document.getElementById('pd-cliente').value||'Cliente')+'! Cotización de *Evolved3D*:\n\n📐 '+(document.getElementById('pd-desc').value||'Diseño 3D')+'\n⏱ '+(document.getElementById('dhs').value||'0')+'hs\n💰 Total: *'+document.getElementById('d-total').textContent+'*\n\n¡Avisanos si querés arrancar!';abrirWppModal(msg,'')}
+function copiarPresup(){var texto='PRESUPUESTO '+document.getElementById('doc-num').textContent+' — Evolved3D\nCliente: '+document.getElementById('doc-cliente').textContent+'\nTrabajo: '+document.getElementById('doc-trabajo').textContent+'\nTotal: '+document.getElementById('doc-total').textContent+'\nCotizado por: '+document.getElementById('doc-cotizador').textContent+'\nVálido hasta: '+document.getElementById('doc-validez').textContent;navigator.clipboard.writeText(texto).then(function(){alert('¡Copiado!')})}
+
+// WPP
+function openWppPedido(id){var p=db.pedidos.find(function(x){return x.id==id});if(!p)return;var msg='Hola *'+p.cliente+'*! Te avisamos desde *Evolved3D*:\n\n📦 #'+p.id+' — '+(p.desc||'Tu pedido')+'\n'+(p.total?'💰 Total: '+fmt(p.total)+'\n':'')+'✅ Estado: '+p.estado+'\n\n— Evolved3D, Diseño e Impresión 3D';abrirWppModal(msg,p.tel||'')}
+function abrirWppModal(msg,tel){document.getElementById('wpp-msg-edit').value=msg;document.getElementById('wpp-preview-text').innerHTML=msg.replace(/\n/g,'<br>').replace(/\*(.*?)\*/g,'<strong>$1</strong>');document.getElementById('wpp-number').value=tel;openModal('wpp-modal')}
+function sendWpp(){var num=document.getElementById('wpp-number').value.replace(/\D/g,''),msg=document.getElementById('wpp-msg-edit').value;if(!num){alert('Ingresá el número');return}window.open('https://wa.me/'+num+'?text='+encodeURIComponent(msg),'_blank');closeModal('wpp-modal')}
+
+function renderAll(){
+  renderDashboard();renderPedidos(_pedidoFiltro);renderClientes();renderMaquinas();
+  renderStock();renderTrabajos();renderCobros();renderResumen();renderUsuarios();
+}
+
+// INIT
+document.querySelectorAll('input[type=date]').forEach(function(el){if(!el.value)el.value=new Date().toISOString().split('T')[0]});
+if(currentUser){showApp()}
+</script>
+</body>
+</html>
